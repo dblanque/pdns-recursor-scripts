@@ -9,3 +9,9 @@ lua-dns-script=/etc/powerdns/hooks.lua
 ```
 
 You must parse your IP Block-lists into the file `/etc/powerdns/filter-domains.list`
+
+# IPBL Examples
+
+## Emerging Threats
+* Blocked IPs: <https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt>
+* Compromised IPs: <https://rules.emergingthreats.net/blockrules/compromised-ips.txt>

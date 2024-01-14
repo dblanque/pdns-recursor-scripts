@@ -4,7 +4,7 @@
 -- this function is hooked before resolving starts
 function preresolve_lo(dq)
 	-- check blocklist
-	if local_domain_overrides:check(dq.qname) or filterips:check(dq.remoteaddr) or filtercidr:match(dq.remoteaddr) then
+	if local_domain_overrides:check(dq.qname) then
 		if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
 			dq:addAnswer(pdns.A, "10.10.10.251")
 		end

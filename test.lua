@@ -40,14 +40,14 @@ for key, line in pairs(s_tests) do
 	if re.match(line, re_pattern_adblock) then -- ADBLOCK FORMAT
 		local stripped = string.gsub(line, "||", "")
 		stripped = string.gsub(stripped, "%^", "") -- Escape Special character ^ with %
-		print("ADBLOCK: "..stripped)
+		print("ADBLOCK: ".." (Index: "..key..") "..stripped)
 	elseif re.match(line, re_chars) then -- PCRE FORMAT
-		print("PCRE: "..line)
+		print("PCRE: ".." (Index: "..key..") "..line)
 	elseif re.match(line, re_wild) then -- WILDCARD FORMAT
 		local wilded = string.gsub(line, '*%.', "") -- Escape Special character . with %
 		wilded = ".*\\.*"..string.gsub(wilded, '%.', "\\.") -- Escape Special Characters
-		print("WILD: "..wilded)
+		print("WILD: ".." (Index: "..key..") "..wilded)
 	else -- STANDARD HOSTS FORMAT
-		print("STANDARD: "..line)
+		print("STANDARD: ".." (Index: "..key..") "..line)
 	end
 end

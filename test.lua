@@ -30,7 +30,7 @@ function isModuleAvailable(name)
 end
 if isModuleAvailable("rex_pcre") then
 	re = require"rex_pcre"
-elseif isModuleAvailable("rex_pcre") then
+elseif isModuleAvailable("rex_pcre2") then
 	re = require"rex_pcre2"
 else
 	error("pdns-recursor-scripts malware-filter.lua requires rex_pcre or rex_pcre2 to be installed")

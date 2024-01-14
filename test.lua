@@ -3,10 +3,10 @@ local re_pattern_adblock='^(\\|){2}(.*)\\^$' -- Matches Adblock Format
 local re_chars="(.*)[$^|](.*)" -- Matches PCRE Format
 local re_wild="^[*.]" -- Matches Wildcard Format
 
-local s_test_adblock="||example.com^"
-local s_test_normal="example.com"
-local s_test_regex="(\\.|^)example\\.com$"
-local s_test_wildcard="*.example.com"
+local s_test_adblock="||example-dom.com^"
+local s_test_normal="example-dom.com"
+local s_test_regex="(\\.|^)example-dom\\.com$"
+local s_test_wildcard="*.example-dom.com"
 local s_tests={
 	s_test_adblock,
 	s_test_normal,

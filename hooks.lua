@@ -30,8 +30,15 @@ function loadFileNMG(filename, list)
 	end
 end
 
-dofile("/etc/powerdns/malware-filter.lua")
-dofile("/etc/powerdns/local-domains.lua")
+local function get_script_path()
+	local str = debug.getinfo(1, "S").source:sub(2)
+	return str:match("(.*/)") or "."
+end
+
+local script_path = get_script_path()
+
+dofile(script_path.."/malware-filter.lua")
+dofile(script_path.."/local-domains.lua")
 
 function preresolve(dq)
 	return preresolve_mf(dq) or preresolve_lo(dq)

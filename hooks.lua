@@ -67,7 +67,7 @@ dofile(pdns_scripts_path.."/malware-filter.lua")
 dofile(pdns_scripts_path.."/local-domains.lua")
 
 function preresolve(dq)
-	return preresolve_mf(dq) or preresolve_lo(dq)
+	return preresolve_lo(dq) or preresolve_mf(dq)
 end
 
 function postresolve(dq)

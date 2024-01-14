@@ -6,6 +6,12 @@ Script Repository maintained by Dylan Blanqué. Created in 2024.
 
 You must have `lua-rex-pcre` or `lua-rex-pcre2` installed (Can be done with `apt` or `luarocks`).
 
+E.g.:
+```bash
+apt update -y
+apt install lua-rex-pcre -y || apt install lua-rex-pcre2 -y
+```
+
 # INSTRUCTIONS
 
 To use, clone this repository onto your `/etc/powerdns` directory and add

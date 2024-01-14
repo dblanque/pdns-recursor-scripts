@@ -26,5 +26,6 @@ lua-dns-script=/etc/powerdns/pdns-recursor-scripts/hooks.lua
 
 # Supported Syntaxes:
 * Adblock
-* Hosts
+* Plain List
 * PCRE Regex
+* Wildcard

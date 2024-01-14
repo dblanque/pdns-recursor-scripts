@@ -22,4 +22,9 @@ lua-dns-script=/etc/powerdns/pdns-recursor-scripts/hooks.lua
 
 # DNSBL Examples
 
-Must be in full domain name format
+* Hagezi DNS Blocklists: <https://github.com/hagezi/dns-blocklists>
+
+# Supported Syntaxes:
+* Adblock
+* Hosts
+* PCRE Regex

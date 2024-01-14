@@ -1,5 +1,47 @@
 pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
 
+function isModuleAvailable(name)
+	if package.loaded[name] then
+		return true
+	else
+		for _, searcher in ipairs(package.searchers or package.loaders) do
+			local loader = searcher(name)
+			if type(loader) == 'function' then
+				package.preload[name] = loader
+				return true
+			end
+		end
+		return false
+	end
+end
+
+function empty_str(s)
+	return s == nil or s == ''
+end
+
+function table_contains (tab, val)
+	for index, value in ipairs(tab) do
+		if value == val then
+			return true
+		end
+	end
+	return false
+end
+
+-- This function uses native LUA Regex, not PCRE2
+function is_comment(v)
+	if not v then return false end
+	local p_list = {
+		"^#(.*)$",
+		"^%-%-(.*)$",
+		"^//(.*)$"
+	}
+	for key, pattern in pairs(p_list) do
+		if string.match(v, pattern) then return true end
+	end
+	return false
+end
+
 -- returns true if the given file exists
 function fileExists(file)
 	local f = io.open(file, "rb")

@@ -15,9 +15,9 @@ function loadDSFile(filename, list)
 		for line in io.lines(filename) do
 			list:add(line)
 		end
-		pdnslog("Lua script: " .. filename .. " successfully loaded", pdns.loglevels.Notice)
+		pdnslog("loadDSFile(): " .. filename .. " successfully loaded", pdns.loglevels.Notice)
 	else
-		pdnslog("Lua script: could not open file " .. filename, pdns.loglevels.Warning)
+		pdnslog("loadDSFile(): could not open file " .. filename, pdns.loglevels.Warning)
 	end
 end
 

@@ -1,3 +1,5 @@
+pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
+
 -- returns true if the given file exists
 function fileExists(file)
 	local f = io.open(file, "rb")
@@ -30,10 +32,8 @@ function loadFileNMG(filename, list)
 	end
 end
 
-scripts_path = "/etc/powerdns/pdns-recursor-scripts"
-
-dofile(scripts_path.."/malware-filter.lua")
-dofile(scripts_path.."/local-domains.lua")
+dofile(pdns_scripts_path.."/malware-filter.lua")
+dofile(pdns_scripts_path.."/local-domains.lua")
 
 function preresolve(dq)
 	return preresolve_mf(dq) or preresolve_lo(dq)

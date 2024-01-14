@@ -22,4 +22,4 @@ end
 
 -- List of malware domains
 local_domain_overrides=newDS()
-loadFile("/etc/powerdns/local-domains.list", local_domain_overrides)
+loadDSFile("/etc/powerdns/local-domains.list", local_domain_overrides)

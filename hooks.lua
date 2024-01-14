@@ -10,21 +10,10 @@ function fileExists(file)
 end
 
 -- loads contents of a file line by line into the given table
-function loadFile(filename, list)
+function loadDSFile(filename, list)
 	if fileExists(filename) then
 		for line in io.lines(filename) do
 			list:add(line)
-		end
-		pdnslog("Lua script: " .. filename .. " successfully loaded", pdns.loglevels.Notice)
-	else
-		pdnslog("Lua script: could not open file " .. filename, pdns.loglevels.Warning)
-	end
-end
-
-function loadFileNMG(filename, list)
-	if fileExists(filename) then
-		for line in io.lines(filename) do
-			list:addMask(line)
 		end
 		pdnslog("Lua script: " .. filename .. " successfully loaded", pdns.loglevels.Notice)
 	else

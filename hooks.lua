@@ -27,3 +27,7 @@ dofile(pdns_scripts_path.."/local-domains.lua")
 function preresolve(dq)
 	return preresolve_mf(dq) or preresolve_lo(dq)
 end
+
+function postresolve(dq)
+	return postresolve_mf(dq)
+end

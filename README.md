@@ -15,3 +15,7 @@ You must parse your IP Block-lists into the file `/etc/powerdns/filter-domains.l
 ## Emerging Threats
 * Blocked IPs: <https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt>
 * Compromised IPs: <https://rules.emergingthreats.net/blockrules/compromised-ips.txt>
+
+# DNSBL Examples
+
+Must be in full domain name format

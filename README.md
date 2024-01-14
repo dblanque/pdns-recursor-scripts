@@ -1,14 +1,18 @@
 # Scripts for PowerDNS Split-DNS and Malware Filtering
 
+# REQUIREMENTS
+
+You must have `lua-rex-pcre2` installed (Can be done with `apt` or `luarocks`).
+
+# INSTRUCTIONS
+
 To use, clone this repository onto your `/etc/powerdns` directory and add
 or modify the following line in your PowerDNS Recursor Configuration File:
 
 ```conf
 # /etc/powerdns/recursor.conf
-lua-dns-script=/etc/powerdns/hooks.lua
+lua-dns-script=/etc/powerdns/pdns-recursor-scripts/hooks.lua
 ```
-
-You must parse your IP Block-lists into the file `/etc/powerdns/filter-domains.list`
 
 # IPBL Examples
 

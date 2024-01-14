@@ -2,7 +2,7 @@
 
 # REQUIREMENTS
 
-You must have `lua-rex-pcre2` installed (Can be done with `apt` or `luarocks`).
+You must have `lua-rex-pcre` or `lua-rex-pcre2` installed (Can be done with `apt` or `luarocks`).
 
 # INSTRUCTIONS
 

@@ -34,7 +34,8 @@ function is_comment(v)
 	local p_list = {
 		"^#(.*)$",
 		"^%-%-(.*)$",
-		"^//(.*)$"
+		"^//(.*)$",
+		"^!(.*)$"
 	}
 	for key, pattern in pairs(p_list) do
 		if string.match(v, pattern) then return true end

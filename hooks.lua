@@ -78,11 +78,11 @@ local include_path = pdns_scripts_path..'/include.d'
 f = io.popen('ls ' .. include_path .. '|grep ".lua"')
 for m in f:lines() do 
 	local m_path = include_path .. "/" .. m
-	pdnslog("Load module requested: " .. m, pdns.loglevels.Notice)
-	if not require(string.gsub(m, "%.lua", "")) then
-		pdnslog("Could not load module: " .. m, pdns.loglevels.Warning)
+	pdnslog("Load file requested: " .. m_path, pdns.loglevels.Notice)
+	if not dofile(m_path) then
+		pdnslog("Could not load file: " .. m_path, pdns.loglevels.Warning)
 	else
-		pdnslog("Loaded module " .. m .. " successfully.", pdns.loglevels.Notice)
+		pdnslog("Loaded file " .. m_path .. " successfully.", pdns.loglevels.Notice)
 	end
 end
 

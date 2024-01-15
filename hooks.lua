@@ -95,6 +95,7 @@ end
 
 function preresolve(dq)
 	for k,f in pairs(g.preresolve_functions) do
+		pdnslog("preresolve f(): "..k, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result then return result end
 	end
@@ -103,6 +104,7 @@ end
 
 function postresolve(dq)
 	for k,f in pairs(g.postresolve_functions) do
+		pdnslog("postresolve f(): "..k, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result then return result end
 	end

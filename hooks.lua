@@ -95,9 +95,16 @@ end
 function preresolve(dq)
 	for index, f_name in ipairs(g.preresolve_index) do
 		local f = g.preresolve_functions[f_name]
+		if not f then
+			pdnslog(f_name, pdns.loglevels.Notice)
+			pdnslog(index, pdns.loglevels.Notice)
+			pdnslog(f, pdns.loglevels.Notice)
+			goto continue
+		end
 		pdnslog("preresolve f(): "..f_name, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result == true then return result end
+		::continue::
 	end
 	return false
 end
@@ -105,9 +112,11 @@ end
 function postresolve(dq)
 	for index, f_name in ipairs(g.postresolve_index) do
 		local f = g.postresolve_functions[f_name]
+		if not f then goto continue end
 		pdnslog("postresolve f(): "..f_name, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result == true then return result end
+		::continue::
 	end
 	return false
 end

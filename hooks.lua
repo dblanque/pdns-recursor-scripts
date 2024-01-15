@@ -1,4 +1,7 @@
 pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
+preresolve_functions = {}
+postresolve_functions = {}
+package.path = package.path .. ";"..pdns_scripts_path.."/?.lua"
 
 function isModuleAvailable(name)
 	if package.loaded[name] then
@@ -63,10 +66,6 @@ function loadDSFile(filename, list)
 		pdnslog("loadDSFile(): could not open file " .. filename, pdns.loglevels.Warning)
 	end
 end
-
-preresolve_functions = {}
-postresolve_functions = {}
-package.path = package.path .. ";./?.lua"
 
 if fileExists(pdns_scripts_path.."/include.conf") then
 	dofile(pdns_scripts_path.."/include.conf")

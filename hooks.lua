@@ -1,7 +1,7 @@
 pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
 preresolve_functions = {}
 postresolve_functions = {}
-package.path = package.path .. ";"..pdns_scripts_path
+package.path = package.path .. ";"..pdns_scripts_path.."/?.lua"
 
 function isModuleAvailable(name)
 	if package.loaded[name] then

@@ -64,7 +64,7 @@ function loadDSFile(filename, list)
 	end
 end
 
-if fileExists() then
+if fileExists(pdns_scripts_path.."/include.conf") then
 	dofile(pdns_scripts_path.."/include.conf")
 else
 	dofile(pdns_scripts_path.."/malware-filter.lua")

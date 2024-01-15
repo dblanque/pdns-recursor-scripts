@@ -68,23 +68,7 @@ preresolve_functions = {}
 postresolve_functions = {}
 
 if fileExists(pdns_scripts_path.."/include.conf") then
-	for line in io.lines(pdns_scripts_path.."/include.conf") do
-		local path
-		if string.find(line, "/") then
-			path = line
-		else
-			path = pdns_scripts_path.."/"..line
-		end
-		if fileExists(path) then
-			pdnslog("Loading Script File: " .. path, pdns.loglevels.Notice)
-			dofile(path)
-		else
-			pdnslog("Could not load Script File: " .. path, pdns.loglevels.Warning)
-		end
-	end
-else
-	dofile(pdns_scripts_path.."/malware-filter.lua")
-	dofile(pdns_scripts_path.."/local-domains.lua")
+	dofile(pdns_scripts_path.."/include.conf")
 end
 
 for k,f in pairs(preresolve_functions) do

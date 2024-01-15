@@ -41,15 +41,6 @@ function table_contains (tab, val)
 	return false
 end
 
-function table_index (tab, val)
-	for index, value in ipairs(tab) do
-		if value == val then
-			return index
-		end
-	end
-	return nil
-end
-
 function table_len(T)
 	local count = 0
 	for _ in pairs(T) do count = count + 1 end
@@ -95,12 +86,7 @@ end
 function preresolve(dq)
 	for index, f_name in ipairs(g.preresolve_index) do
 		local f = g.preresolve_functions[f_name]
-		if not f then
-			pdnslog(f_name, pdns.loglevels.Notice)
-			pdnslog(index, pdns.loglevels.Notice)
-			pdnslog(f, pdns.loglevels.Notice)
-			goto continue
-		end
+		if not f then goto continue end
 		pdnslog("preresolve f(): "..f_name, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result == true then return result end

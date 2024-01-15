@@ -67,9 +67,10 @@ function loadDSFile(filename, list)
 	end
 end
 
-if fileExists(pdns_scripts_path.."/include.conf") then
-	dofile(pdns_scripts_path.."/include.conf")
+if not fileExists(pdns_scripts_path.."/include.conf") then
+	error("Please create your include.conf file.")
 end
+dofile(pdns_scripts_path.."/include.conf")
 
 for k,f in pairs(preresolve_functions) do
 	pdnslog(f.." preresolve function loaded.", pdns.loglevels.Notice)

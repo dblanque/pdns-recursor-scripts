@@ -1,5 +1,7 @@
 -- Set package path
 g={}
+g.preresolve_index = {}
+g.postresolve_index = {}
 g.preresolve_functions = {}
 g.postresolve_functions = {}
 g.pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
@@ -39,12 +41,21 @@ function table_contains (tab, val)
 	return false
 end
 
+function table_index (tab, val)
+	for index, value in ipairs(tab) do
+		if value == val then
+			return index
+		end
+	end
+	return nil
+end
+
 function table_len(T)
 	local count = 0
 	for _ in pairs(T) do count = count + 1 end
 	return count
   end
-  
+
 -- This function uses native LUA Regex, not PCRE2
 function is_comment(v)
 	if not v then return false end
@@ -74,15 +85,16 @@ require("malware-filter")
 
 pdnslog("preresolve function table contains "..table_len(g.preresolve_functions).." entries.", pdns.loglevels.Notice)
 pdnslog("postresolve function table contains "..table_len(g.postresolve_functions).." entries.", pdns.loglevels.Notice)
-for k,f in pairs(g.preresolve_functions) do
+for i,k in ipairs(g.preresolve_index) do
 	pdnslog(k.." preresolve function loaded.", pdns.loglevels.Notice)
 end
-for k,f in pairs(g.postresolve_functions) do
+for i,k in ipairs(g.postresolve_index) do
 	pdnslog(k.." postresolve function loaded.", pdns.loglevels.Notice)
 end
 
 function preresolve(dq)
-	for k,f in pairs(g.preresolve_functions) do
+	for i,k in ipairs(g.preresolve_index) do
+		f = g.postresolve_functions[k]
 		pdnslog("preresolve f(): "..k, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result == true then return result end
@@ -91,7 +103,8 @@ function preresolve(dq)
 end
 
 function postresolve(dq)
-	for k,f in pairs(g.postresolve_functions) do
+	for i,k in ipairs(g.postresolve_index) do
+		f = g.postresolve_functions[k]
 		pdnslog("postresolve f(): "..k, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result == true then return result end

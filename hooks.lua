@@ -66,11 +66,15 @@ end
 
 if fileExists(pdns_scripts_path.."/include.conf") then
 	for line in io.lines(pdns_scripts_path.."/include.conf") do
-		dofile(line)
+		if string.find(line, "/") then
+			loadfile(line)
+		else
+			loadfile(pdns_scripts_path.."/"..line)
+		end
 	end
 else
-	dofile(pdns_scripts_path.."/malware-filter.lua")
-	dofile(pdns_scripts_path.."/local-domains.lua")
+	loadfile(pdns_scripts_path.."/malware-filter.lua")
+	loadfile(pdns_scripts_path.."/local-domains.lua")
 end
 
 function preresolve(dq)

@@ -82,8 +82,8 @@ function loadDSFile(filename, list)
 	end
 end
 
-local mf_file, mf_err = loadfile(g.pdns_scripts_path.."/malware-filter.lua")
-local lo_file, lo_err = loadfile(g.pdns_scripts_path.."/local-domains.lua")
+local mf_file, mf_err = loadfile(g.pdns_scripts_path.."/malware-filter.lua", "bt", _ENV)
+local lo_file, lo_err = loadfile(g.pdns_scripts_path.."/local-domains.lua", "bt", _ENV)
 
 if mf_err then 
 	pdnslog("mf_err: " .. mf_err, pdns.loglevels.Warning)

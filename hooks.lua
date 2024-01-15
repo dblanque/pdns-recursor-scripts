@@ -87,14 +87,16 @@ end
 
 function preresolve(dq)
 	for k,f in pairs(preresolve_functions) do
-		f(dq)
+		local result = f(dq)
+		if result then return result end
 	end
 	return false
 end
 
 function postresolve(dq)
 	for k,f in pairs(postresolve_functions) do
-		f(dq)
+		local result = f(dq)
+		if result then return result end
 	end
 	return false
 end

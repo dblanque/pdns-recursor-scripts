@@ -85,17 +85,17 @@ require("malware-filter")
 
 pdnslog("preresolve function table contains "..table_len(g.preresolve_functions).." entries.", pdns.loglevels.Notice)
 pdnslog("postresolve function table contains "..table_len(g.postresolve_functions).." entries.", pdns.loglevels.Notice)
-for i,k in ipairs(g.preresolve_index) do
+for i, k in ipairs(g.preresolve_index) do
 	pdnslog(k.." preresolve function loaded.", pdns.loglevels.Notice)
 end
-for i,k in ipairs(g.postresolve_index) do
+for i, k in ipairs(g.postresolve_index) do
 	pdnslog(k.." postresolve function loaded.", pdns.loglevels.Notice)
 end
 
 function preresolve(dq)
-	for i,k in ipairs(g.preresolve_index) do
-		local f = g.preresolve_functions[k]
-		pdnslog("preresolve f(): "..k, pdns.loglevels.Notice)
+	for index, f_name in ipairs(g.preresolve_index) do
+		local f = g.preresolve_functions[f_name]
+		pdnslog("preresolve f(): "..f_name, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result == true then return result end
 	end
@@ -103,9 +103,9 @@ function preresolve(dq)
 end
 
 function postresolve(dq)
-	for i,k in ipairs(g.postresolve_index) do
-		local f = g.postresolve_functions[k]
-		pdnslog("postresolve f(): "..k, pdns.loglevels.Notice)
+	for index, f_name in ipairs(g.postresolve_index) do
+		local f = g.postresolve_functions[f_name]
+		pdnslog("postresolve f(): "..f_name, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result == true then return result end
 	end

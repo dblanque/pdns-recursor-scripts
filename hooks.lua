@@ -64,6 +64,9 @@ function loadDSFile(filename, list)
 	end
 end
 
+preresolve_functions = {}
+postresolve_functions = {}
+
 if fileExists(pdns_scripts_path.."/include.conf") then
 	for line in io.lines(pdns_scripts_path.."/include.conf") do
 		local path
@@ -85,18 +88,19 @@ else
 end
 
 function preresolve(dq)
-	if preresolve_lo then
-		preresolve_lo(dq)
-	end
-	if preresolve_mf then
-		preresolve_mf(dq)
+	for k,f in pairs(preresolve_functions) do
+		if f then
+			f(dq)
+		end
 	end
 	return false
 end
 
 function postresolve(dq)
-	if postresolve_mf then
-		return postresolve_mf(dq)
+	for k,f in pairs(postresolve_functions) do
+		if f then
+			f(dq)
+		end
 	end
 	return false
 end

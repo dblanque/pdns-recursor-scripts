@@ -26,3 +26,4 @@ end
 -- List of private domains
 local_domain_overrides=newDS()
 loadDSFile(pdns_scripts_path.."/local-domains.list", local_domain_overrides)
+table.insert(preresolve_functions, preresolve_lo)

@@ -78,6 +78,8 @@ if not fileExists(pdns_scripts_path.."/include.conf") then
 end
 dofile(pdns_scripts_path.."/include.conf")
 
+pdnslog("preresolve function table contains"..table_len(preresolve_functions), pdns.loglevels.Notice)
+pdnslog("postresolve function table contains"..table_len(postresolve_functions), pdns.loglevels.Notice)
 for k,f in pairs(preresolve_functions) do
 	pdnslog(f.." preresolve function loaded.", pdns.loglevels.Notice)
 end

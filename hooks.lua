@@ -1,7 +1,15 @@
+-- Set package path
 pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
+package.path = package.path .. ";"..pdns_scripts_path.."/?.lua"
+
+local options = require 'options'
+local options_overrides = require 'overrides'
+for k, v in pairs(options_overrides) do
+	options[k] = v
+end
+
 preresolve_functions = {}
 postresolve_functions = {}
-package.path = package.path .. ";"..pdns_scripts_path.."/include.d/?.lua"
 
 function isModuleAvailable(name)
 	if package.loaded[name] then
@@ -73,18 +81,11 @@ function loadDSFile(filename, list)
 	end
 end
 
--- Require include.d files
-local include_path = pdns_scripts_path..'/include.d'
-
-f = io.popen('ls ' .. include_path .. '|grep ".lua"')
-for m in f:lines() do 
-	local m_path = include_path .. "/" .. m
-	pdnslog("Load file requested: " .. m_path, pdns.loglevels.Notice)
-	if not loadfile(m_path, "bt", _ENV) then
-		pdnslog("Could not load file: " .. m_path, pdns.loglevels.Warning)
-	else
-		pdnslog("Loaded file " .. m_path .. " successfully.", pdns.loglevels.Notice)
-	end
+if options.use_dnsbl or options.use_ipbl then
+	dofile(pdns_scripts_path.."/malware-filter.lua")
+end
+if options.use_local_forwarder then
+	dofile(pdns_scripts_path.."/local-domains.lua")
 end
 
 pdnslog("preresolve function table contains "..table_len(preresolve_functions).." entries.", pdns.loglevels.Notice)

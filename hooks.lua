@@ -74,20 +74,29 @@ if fileExists(pdns_scripts_path.."/include.conf") then
 		end
 		if fileExists(path) then
 			pdnslog("Loading Script File: " .. path, pdns.loglevels.Notice)
-			dofile(path)
+			loadfile(path)
 		else
 			pdnslog("Could not load Script File: " .. path, pdns.loglevels.Warning)
 		end
 	end
 else
-	dofile(pdns_scripts_path.."/malware-filter.lua")
-	dofile(pdns_scripts_path.."/local-domains.lua")
+	loadfile(pdns_scripts_path.."/malware-filter.lua")
+	loadfile(pdns_scripts_path.."/local-domains.lua")
 end
 
 function preresolve(dq)
-	return preresolve_lo(dq) or preresolve_mf(dq)
+	if preresolve_lo then
+		preresolve_lo(dq)
+	end
+	if preresolve_mf then
+		preresolve_mf(dq)
+	end
+	return false
 end
 
 function postresolve(dq)
-	return postresolve_mf(dq)
+	if postresolve_mf then
+		return postresolve_mf(dq)
+	end
+	return false
 end

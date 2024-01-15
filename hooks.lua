@@ -75,15 +75,15 @@ end
 
 -- Require include.d files
 local include_path = pdns_scripts_path..'/include.d'
+
 f = io.popen('ls ' .. include_path .. '|grep ".lua"')
 for m in f:lines() do 
 	local m_path = include_path .. "/" .. m
 	pdnslog("Load file requested: " .. m_path, pdns.loglevels.Notice)
-	if not dofile(m_path) then
+	if not loadfile(m_path, "bt", _ENV) then
 		pdnslog("Could not load file: " .. m_path, pdns.loglevels.Warning)
 	else
 		pdnslog("Loaded file " .. m_path .. " successfully.", pdns.loglevels.Notice)
-		pdnslog(preresolve_mf, pdns.loglevels.Notice)
 	end
 end
 

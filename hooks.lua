@@ -64,8 +64,12 @@ function loadDSFile(filename, list)
 	end
 end
 
-dofile(pdns_scripts_path.."/malware-filter.lua")
-dofile(pdns_scripts_path.."/local-domains.lua")
+if fileExists() then
+	dofile(pdns_scripts_path.."/include.conf")
+else
+	dofile(pdns_scripts_path.."/malware-filter.lua")
+	dofile(pdns_scripts_path.."/local-domains.lua")
+end
 
 function preresolve(dq)
 	return preresolve_lo(dq) or preresolve_mf(dq)

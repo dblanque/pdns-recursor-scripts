@@ -1,0 +1,2 @@
+dofile(pdns_scripts_path.."/malware-filter.lua")
+dofile(pdns_scripts_path.."/local-domains.lua")

@@ -3,6 +3,7 @@
 
 local private_zones_resolver_v4="127.0.0.1"
 local private_zones_resolver_v6="::1"
+pdnslog("local-domains.lua included successfully", pdns.loglevels.Notice)
 
 -- this function is hooked before resolving starts
 function preresolve_lo(dq)

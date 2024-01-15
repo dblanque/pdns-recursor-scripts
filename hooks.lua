@@ -75,10 +75,10 @@ require("local-domains")
 pdnslog("preresolve function table contains "..table_len(g.preresolve_functions).." entries.", pdns.loglevels.Notice)
 pdnslog("postresolve function table contains "..table_len(g.postresolve_functions).." entries.", pdns.loglevels.Notice)
 for k,f in pairs(g.preresolve_functions) do
-	pdnslog(f.." preresolve function loaded.", pdns.loglevels.Notice)
+	pdnslog(k.." preresolve function loaded.", pdns.loglevels.Notice)
 end
 for k,f in pairs(g.postresolve_functions) do
-	pdnslog(f.." postresolve function loaded.", pdns.loglevels.Notice)
+	pdnslog(k.." postresolve function loaded.", pdns.loglevels.Notice)
 end
 
 function preresolve(dq)

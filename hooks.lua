@@ -66,11 +66,7 @@ end
 
 if fileExists(pdns_scripts_path.."/include.conf") then
 	for line in io.lines(pdns_scripts_path.."/include.conf") do
-		if string.find(line, "/") then
-			dofile(line)
-		else
-			dofile(pdns_scripts_path.."/"..line)
-		end
+		dofile(line)
 	end
 else
 	dofile(pdns_scripts_path.."/malware-filter.lua")

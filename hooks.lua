@@ -77,8 +77,13 @@ end
 local include_path = pdns_scripts_path..'/include.d'
 f = io.popen('ls ' .. include_path .. '|grep ".lua"')
 for m in f:lines() do 
-	pdnslog("Load file requested: "..m, pdns.loglevels.Notice)
-	loadfile(include_path .. "/" .. m, "bt")
+	local m_path = include_path .. "/" .. m
+	pdnslog("Load file requested: " .. m_path, pdns.loglevels.Notice)
+	if not loadfile(m_path, "bt") then
+		pdnslog("Could not load file: " .. m_path, pdns.loglevels.Warning)
+	else
+		pdnslog(m_path .. " included successfully", pdns.loglevels.Notice)
+	end
 end
 
 pdnslog("preresolve function table contains "..table_len(preresolve_functions).." entries.", pdns.loglevels.Notice)

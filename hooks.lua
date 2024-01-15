@@ -75,10 +75,10 @@ end
 
 -- Require include.d files
 f = io.popen('ls |grep ".lua"' .. pdns_scripts_path .. "/include.d")
-for m in f:lines() do require(m) end
+for m in f:lines() do dofile(m) end
 
-pdnslog("preresolve function table contains "..table_len(preresolve_functions).."entries.", pdns.loglevels.Notice)
-pdnslog("postresolve function table contains "..table_len(postresolve_functions).."entries.", pdns.loglevels.Notice)
+pdnslog("preresolve function table contains "..table_len(preresolve_functions).." entries.", pdns.loglevels.Notice)
+pdnslog("postresolve function table contains "..table_len(postresolve_functions).." entries.", pdns.loglevels.Notice)
 for k,f in pairs(preresolve_functions) do
 	pdnslog(f.." preresolve function loaded.", pdns.loglevels.Notice)
 end

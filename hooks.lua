@@ -1,7 +1,7 @@
 pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
 preresolve_functions = {}
 postresolve_functions = {}
-package.path = package.path .. ";"..pdns_scripts_path.."/?.lua"
+package.path = package.path .. ";"..pdns_scripts_path.."/include.d/?.lua"
 
 function isModuleAvailable(name)
 	if package.loaded[name] then
@@ -73,8 +73,12 @@ function loadDSFile(filename, list)
 	end
 end
 
-pdnslog("preresolve function table contains"..table_len(preresolve_functions), pdns.loglevels.Notice)
-pdnslog("postresolve function table contains"..table_len(postresolve_functions), pdns.loglevels.Notice)
+-- Require include.d files
+f = io.popen('ls |grep ".lua"' .. pdns_scripts_path .. "/include.d")
+for m in f:lines() do require(m) end
+
+pdnslog("preresolve function table contains "..table_len(preresolve_functions).."entries.", pdns.loglevels.Notice)
+pdnslog("postresolve function table contains "..table_len(postresolve_functions).."entries.", pdns.loglevels.Notice)
 for k,f in pairs(preresolve_functions) do
 	pdnslog(f.." preresolve function loaded.", pdns.loglevels.Notice)
 end

@@ -1,7 +1,7 @@
 pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
 preresolve_functions = {}
 postresolve_functions = {}
-package.path = package.path .. ";"..pdns_scripts_path.."/?.lua"
+package.path = package.path .. ";"..pdns_scripts_path.."/?"
 
 function isModuleAvailable(name)
 	if package.loaded[name] then
@@ -76,7 +76,7 @@ end
 if not fileExists(pdns_scripts_path.."/include.conf") then
 	error("Please create your include.conf file.")
 end
-dofile(pdns_scripts_path.."/include.conf")
+require("include.conf")
 
 pdnslog("preresolve function table contains"..table_len(preresolve_functions), pdns.loglevels.Notice)
 pdnslog("postresolve function table contains"..table_len(postresolve_functions), pdns.loglevels.Notice)

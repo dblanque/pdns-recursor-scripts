@@ -87,6 +87,13 @@ else
 	dofile(pdns_scripts_path.."/local-domains.lua")
 end
 
+for k,f in pairs(preresolve_functions) do
+	pdnslog(f.." preresolve function loaded.", pdns.loglevels.Notice)
+end
+for k,f in pairs(postresolve_functions) do
+	pdnslog(f.." postresolve function loaded.", pdns.loglevels.Notice)
+end
+
 function preresolve(dq)
 	for k,f in pairs(preresolve_functions) do
 		if f then

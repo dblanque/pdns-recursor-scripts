@@ -65,7 +65,13 @@ function loadDSFile(filename, list)
 end
 
 if fileExists(pdns_scripts_path.."/include.conf") then
-	dofile(pdns_scripts_path.."/include.conf")
+	for line in io.lines(pdns_scripts_path.."/include.conf") do
+		if string.find(line, "/") then
+			dofile(line)
+		else
+			dofile(pdns_scripts_path.."/"..line)
+		end
+	end
 else
 	dofile(pdns_scripts_path.."/malware-filter.lua")
 	dofile(pdns_scripts_path.."/local-domains.lua")

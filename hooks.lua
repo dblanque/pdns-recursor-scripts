@@ -82,8 +82,16 @@ function loadDSFile(filename, list)
 	end
 end
 
-loadfile(g.pdns_scripts_path.."/malware-filter.lua")
-loadfile(g.pdns_scripts_path.."/local-domains.lua")
+local mf_file, mf_err = loadfile(g.pdns_scripts_path.."/malware-filter.lua")
+local lo_file, lo_err = loadfile(g.pdns_scripts_path.."/local-domains.lua")
+
+if mf_err then 
+	pdnslog("mf_err: " .. mf_err, pdns.loglevels.Warning)
+end
+if lo_err then 
+	pdnslog("lo_err" .. lo_err, pdns.loglevels.Warning)
+end
+
 pdnslog("preresolve function table contains "..table_len(g.preresolve_functions).." entries.", pdns.loglevels.Notice)
 pdnslog("postresolve function table contains "..table_len(g.postresolve_functions).." entries.", pdns.loglevels.Notice)
 for k,f in pairs(g.preresolve_functions) do

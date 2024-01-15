@@ -94,7 +94,6 @@ for k,f in pairs(g.postresolve_functions) do
 end
 
 function preresolve(dq)
-	pdnslog("Custom pre-resolve Executed", pdns.loglevels.Notice)
 	for k,f in pairs(g.preresolve_functions) do
 		pdnslog("preresolve f(): "..k, pdns.loglevels.Notice)
 		local result = f(dq)
@@ -104,7 +103,6 @@ function preresolve(dq)
 end
 
 function postresolve(dq)
-	pdnslog("Custom post-resolve Executed", pdns.loglevels.Notice)
 	for k,f in pairs(g.postresolve_functions) do
 		pdnslog("postresolve f(): "..k, pdns.loglevels.Notice)
 		local result = f(dq)

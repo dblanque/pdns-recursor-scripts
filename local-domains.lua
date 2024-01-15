@@ -26,5 +26,6 @@ if g.options.use_local_forwarder then
 	local_domain_overrides=newDS()
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides)
 
+	pdnslog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
 	g.preresolve_functions['preresolve_lo'] = preresolve_lo
 end

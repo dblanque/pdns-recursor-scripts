@@ -66,6 +66,7 @@ end
 
 preresolve_functions = {}
 postresolve_functions = {}
+package.path = package.path .. ";./?.lua"
 
 if fileExists(pdns_scripts_path.."/include.conf") then
 	dofile(pdns_scripts_path.."/include.conf")

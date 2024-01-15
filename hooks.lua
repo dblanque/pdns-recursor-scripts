@@ -83,6 +83,7 @@ for m in f:lines() do
 		pdnslog("Could not load file: " .. m_path, pdns.loglevels.Warning)
 	else
 		pdnslog("Loaded file " .. m_path .. " successfully.", pdns.loglevels.Notice)
+		pdnslog(preresolve_mf, pdns.loglevels.Notice)
 	end
 end
 

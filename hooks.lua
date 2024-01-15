@@ -81,13 +81,8 @@ function loadDSFile(filename, list)
 	end
 end
 
-if options.use_dnsbl or options.use_ipbl then
-	dofile(pdns_scripts_path.."/malware-filter.lua")
-end
-if options.use_local_forwarder then
-	dofile(pdns_scripts_path.."/local-domains.lua")
-end
-
+dofile(pdns_scripts_path.."/malware-filter.lua")
+dofile(pdns_scripts_path.."/local-domains.lua")
 pdnslog("preresolve function table contains "..table_len(preresolve_functions).." entries.", pdns.loglevels.Notice)
 pdnslog("postresolve function table contains "..table_len(postresolve_functions).." entries.", pdns.loglevels.Notice)
 for k,f in pairs(preresolve_functions) do

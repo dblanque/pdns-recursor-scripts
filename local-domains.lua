@@ -1,6 +1,18 @@
 -- Split DNS Filtering
 -- Add your Default Web Reverse Proxy or desired Internal IP for your domain.
 
+-- loads contents of a file line by line into the given table
+local function loadDSFile(filename, list)
+	if fileExists(filename) then
+		for line in io.lines(filename) do
+			list:add(line)
+		end
+		pdnslog("loadDSFile(): " .. filename .. " successfully loaded", pdns.loglevels.Notice)
+	else
+		pdnslog("loadDSFile(): could not open file " .. filename, pdns.loglevels.Warning)
+	end
+end
+
 -- this function is hooked before resolving starts
 function preresolve_lo(dq)
 	-- check blocklist

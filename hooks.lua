@@ -1,5 +1,7 @@
 -- Set package path
 g={}
+g.preresolve_functions = {}
+g.postresolve_functions = {}
 g.pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
 package.path = package.path .. ";"..g.pdns_scripts_path.."/?.lua"
 
@@ -8,9 +10,6 @@ local options_overrides = require 'overrides'
 for k, v in pairs(options_overrides) do
 	g.options[k] = v
 end
-
-g.preresolve_functions = {}
-g.postresolve_functions = {}
 
 function isModuleAvailable(name)
 	if package.loaded[name] then
@@ -70,20 +69,8 @@ function fileExists(file)
 	return f ~= nil
 end
 
--- loads contents of a file line by line into the given table
-function loadDSFile(filename, list)
-	if fileExists(filename) then
-		for line in io.lines(filename) do
-			list:add(line)
-		end
-		pdnslog("loadDSFile(): " .. filename .. " successfully loaded", pdns.loglevels.Notice)
-	else
-		pdnslog("loadDSFile(): could not open file " .. filename, pdns.loglevels.Warning)
-	end
-end
-
-dofile(g.pdns_scripts_path.."/malware-filter.lua")
-dofile(g.pdns_scripts_path.."/local-domains.lua")
+require("malware-filter")
+require("local-domains")
 
 pdnslog("preresolve function table contains "..table_len(g.preresolve_functions).." entries.", pdns.loglevels.Notice)
 pdnslog("postresolve function table contains "..table_len(g.postresolve_functions).." entries.", pdns.loglevels.Notice)

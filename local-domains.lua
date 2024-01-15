@@ -28,4 +28,6 @@ if g.options.use_local_forwarder then
 
 	pdnslog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
 	g.preresolve_functions['preresolve_lo'] = preresolve_lo
+else
+	pdnslog("Local Domain Forwarder not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)
 end

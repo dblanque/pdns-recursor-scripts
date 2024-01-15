@@ -13,6 +13,23 @@ for k, v in pairs(options_overrides) do
 	g.options[k] = v
 end
 
+-- Required for load-order based execution
+function addResolveFunction(mode, f_name, f)
+	local t_i
+	local t_f
+	if mode == "pre" then
+		t_i = "preresolve_index"
+		t_f = "preresolve_functions"
+	elseif mode == "post" then
+		t_i = "postresolve_index"
+		t_f = "postresolve_functions"
+	else
+		error("addResolveFunction(): mode param must be 'pre' or 'post'")
+	end
+	table.insert(g[t_i], f_name)
+	g[t_f][f_name] = f
+end
+
 function isModuleAvailable(name)
 	if package.loaded[name] then
 		return true

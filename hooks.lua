@@ -67,9 +67,15 @@ end
 if fileExists(pdns_scripts_path.."/include.conf") then
 	for line in io.lines(pdns_scripts_path.."/include.conf") do
 		if string.find(line, "/") then
-			loadfile(line)
+			local path = line
 		else
-			loadfile(pdns_scripts_path.."/"..line)
+			local path = pdns_scripts_path.."/"..line
+		end
+		if fileExists(path) then
+			pdnslog("Loading Script File: " .. path, pdns.loglevels.Notice)
+			loadfile(path)
+		else
+			pdnslog("Could not load Script File: " .. path, pdns.loglevels.Warning)
 		end
 	end
 else

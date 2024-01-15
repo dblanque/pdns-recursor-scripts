@@ -74,7 +74,7 @@ function loadDSFile(filename, list)
 end
 
 -- Require include.d files
-f = io.popen('ls'..pdns_scripts_path..'/include.d|grep ".lua"')
+f = io.popen('ls '..pdns_scripts_path..'/include.d|grep ".lua"')
 for m in f:lines() do 
 	pdnslog("Load file requested: "..m, pdns.loglevels.Notice)
 	dofile(m)

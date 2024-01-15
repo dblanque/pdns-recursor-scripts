@@ -2,7 +2,7 @@
 pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
 package.path = package.path .. ";"..pdns_scripts_path.."/?.lua"
 
-local options = require 'options'
+options = require 'options'
 local options_overrides = require 'overrides'
 for k, v in pairs(options_overrides) do
 	options[k] = v

@@ -31,6 +31,12 @@ function table_contains (tab, val)
 	return false
 end
 
+function table_len(T)
+	local count = 0
+	for _ in pairs(T) do count = count + 1 end
+	return count
+  end
+  
 -- This function uses native LUA Regex, not PCRE2
 function is_comment(v)
 	if not v then return false end
@@ -81,18 +87,14 @@ end
 
 function preresolve(dq)
 	for k,f in pairs(preresolve_functions) do
-		if f then
-			f(dq)
-		end
+		f(dq)
 	end
 	return false
 end
 
 function postresolve(dq)
 	for k,f in pairs(postresolve_functions) do
-		if f then
-			f(dq)
-		end
+		f(dq)
 	end
 	return false
 end

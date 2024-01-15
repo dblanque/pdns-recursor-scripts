@@ -69,8 +69,8 @@ function fileExists(file)
 	return f ~= nil
 end
 
-require("malware-filter")
 require("local-domains")
+require("malware-filter")
 
 pdnslog("preresolve function table contains "..table_len(g.preresolve_functions).." entries.", pdns.loglevels.Notice)
 pdnslog("postresolve function table contains "..table_len(g.postresolve_functions).." entries.", pdns.loglevels.Notice)

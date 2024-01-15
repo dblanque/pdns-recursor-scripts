@@ -1,15 +1,16 @@
 -- Set package path
-pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
-package.path = package.path .. ";"..pdns_scripts_path.."/?.lua"
+g={}
+g.pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
+package.path = package.path .. ";"..g.pdns_scripts_path.."/?.lua"
 
-options = require 'options'
+g.options = require 'g.options'
 local options_overrides = require 'overrides'
 for k, v in pairs(options_overrides) do
-	options[k] = v
+	g.options[k] = v
 end
 
-preresolve_functions = {}
-postresolve_functions = {}
+g.preresolve_functions = {}
+g.postresolve_functions = {}
 
 function isModuleAvailable(name)
 	if package.loaded[name] then
@@ -81,19 +82,19 @@ function loadDSFile(filename, list)
 	end
 end
 
-dofile(pdns_scripts_path.."/malware-filter.lua")
-dofile(pdns_scripts_path.."/local-domains.lua")
-pdnslog("preresolve function table contains "..table_len(preresolve_functions).." entries.", pdns.loglevels.Notice)
-pdnslog("postresolve function table contains "..table_len(postresolve_functions).." entries.", pdns.loglevels.Notice)
-for k,f in pairs(preresolve_functions) do
+dofile(g.pdns_scripts_path.."/malware-filter.lua")
+dofile(g.pdns_scripts_path.."/local-domains.lua")
+pdnslog("preresolve function table contains "..table_len(g.preresolve_functions).." entries.", pdns.loglevels.Notice)
+pdnslog("postresolve function table contains "..table_len(g.postresolve_functions).." entries.", pdns.loglevels.Notice)
+for k,f in pairs(g.preresolve_functions) do
 	pdnslog(f.." preresolve function loaded.", pdns.loglevels.Notice)
 end
-for k,f in pairs(postresolve_functions) do
+for k,f in pairs(g.postresolve_functions) do
 	pdnslog(f.." postresolve function loaded.", pdns.loglevels.Notice)
 end
 
 function preresolve(dq)
-	for k,f in pairs(preresolve_functions) do
+	for k,f in pairs(g.preresolve_functions) do
 		local result = f(dq)
 		if result then return result end
 	end
@@ -101,7 +102,7 @@ function preresolve(dq)
 end
 
 function postresolve(dq)
-	for k,f in pairs(postresolve_functions) do
+	for k,f in pairs(g.postresolve_functions) do
 		local result = f(dq)
 		if result then return result end
 	end

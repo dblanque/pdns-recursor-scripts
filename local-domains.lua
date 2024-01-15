@@ -6,11 +6,11 @@ function preresolve_lo(dq)
 	-- check blocklist
 	if local_domain_overrides:check(dq.qname) then
 		if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
-			dq:addAnswer(pdns.A, options.private_zones_resolver_v4)
+			dq:addAnswer(pdns.A, g.options.private_zones_resolver_v4)
 		end
 		
 		if dq.qtype == pdns.AAAA or dq.qtype == pdns.ANY then
-			dq:addAnswer(pdns.AAAA, options.private_zones_resolver_v6)
+			dq:addAnswer(pdns.AAAA, g.options.private_zones_resolver_v6)
 		end
 		
 		return true
@@ -21,10 +21,10 @@ function preresolve_lo(dq)
 end
 
 -- Add preresolve function to table
-if options.use_local_forwarder then
+if g.options.use_local_forwarder then
 	-- List of private domains
 	local_domain_overrides=newDS()
-	loadDSFile(pdns_scripts_path.."/local-domains.list", local_domain_overrides)
+	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides)
 
-	table.insert(preresolve_functions, preresolve_lo)
+	table.insert(g.preresolve_functions, preresolve_lo)
 end

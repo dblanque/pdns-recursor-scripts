@@ -94,7 +94,7 @@ end
 
 function preresolve(dq)
 	for i,k in ipairs(g.preresolve_index) do
-		local f = g.postresolve_functions[k]
+		local f = g.preresolve_functions[k]
 		pdnslog("preresolve f(): "..k, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result == true then return result end

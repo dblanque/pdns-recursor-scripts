@@ -73,9 +73,6 @@ function loadDSFile(filename, list)
 	end
 end
 
--- Include files
-require("include")
-
 pdnslog("preresolve function table contains"..table_len(preresolve_functions), pdns.loglevels.Notice)
 pdnslog("postresolve function table contains"..table_len(postresolve_functions), pdns.loglevels.Notice)
 for k,f in pairs(preresolve_functions) do

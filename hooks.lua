@@ -73,9 +73,7 @@ function loadDSFile(filename, list)
 	end
 end
 
-if not fileExists(pdns_scripts_path.."/include.conf") then
-	error("Please create your include.conf file.")
-end
+-- Include files
 require("include")
 
 pdnslog("preresolve function table contains"..table_len(preresolve_functions), pdns.loglevels.Notice)

@@ -74,10 +74,11 @@ function loadDSFile(filename, list)
 end
 
 -- Require include.d files
-f = io.popen('ls '..pdns_scripts_path..'/include.d|grep ".lua"')
+local include_path = pdns_scripts_path..'/include.d'
+f = io.popen('ls ' .. include_path .. '|grep ".lua"')
 for m in f:lines() do 
 	pdnslog("Load file requested: "..m, pdns.loglevels.Notice)
-	dofile(m)
+	dofile(include_path .. "/" .. m)
 end
 
 pdnslog("preresolve function table contains "..table_len(preresolve_functions).." entries.", pdns.loglevels.Notice)

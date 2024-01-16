@@ -28,7 +28,7 @@ local function preresolve_ns(dq)
 			local parent_dn = newDN(domain)
 
 			if qname:isPartOf(parent_dn) then
-				local new_ns
+				local new_ns = {}
 				local ns_override_auto
 				local ns_override_map
 				if g.options.private_zones_ns_override_prefixes
@@ -41,11 +41,10 @@ local function preresolve_ns(dq)
 					end
 				end
 				if ns_override_map then
-					new_ns = {}
 					for dom, s_list in pairs(g.options.private_zones_ns_override_map) do
 						-- p == prefix, d == domain
 						if dom == domain then
-							for k, suffix in pairs(s_list) do
+							for i, suffix in ipairs(s_list) do
 								table.insert(new_ns, suffix)
 							end
 							break

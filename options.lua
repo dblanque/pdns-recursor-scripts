@@ -4,7 +4,7 @@ local options = {
 	use_dnsbl = false,
 	use_ipbl = false,
 	use_local_forwarder = false,
-	private_zones_ns_override=true
+	private_zones_ns_override = false
 }
 
 return options

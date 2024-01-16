@@ -14,7 +14,7 @@ local function loadDSFile(filename, suffixMatchGroup, domainTable)
 	end
 end
 
-local function preresolve_ns(dq)
+function preresolve_ns(dq)
 	-- check blocklist
 	if not local_domain_overrides:check(dq.qname) then
 		return false

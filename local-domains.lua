@@ -31,7 +31,7 @@ local function preresolve_ns(dq)
 			if qname:isPartOf(parent_dn) then
 				parent = domain
 				local new_ns
-				if not g.options.private_zones_ns_override_prefixes or table_len(g.options.private_zones_ns_override_prefixes) < 1 then
+				if g.options.private_zones_ns_override_prefixes then
 					new_ns = {
 						"ns1.",
 						"ns2.",

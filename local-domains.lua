@@ -18,7 +18,7 @@ function preresolve_lo(dq)
 	-- check blocklist
 	if local_domain_overrides:check(dq.qname) then
 		if dq.qtype == pdns.NS and g.options.private_zones_ns_override then
-			local ns_check = local_domain_overrides:tostring(dq.qname)
+			local ns_check = local_domain_overrides:toString(dq.qname)
 			if ns_check then
 				local new_ns = {
 					"ns1."..zone,

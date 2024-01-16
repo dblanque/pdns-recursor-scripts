@@ -3,7 +3,8 @@ local options = {
 	private_zones_resolver_v6="::1",
 	use_dnsbl = false,
 	use_ipbl = false,
-	use_local_forwarder = false
+	use_local_forwarder = false,
+	private_zones_ns_override=true
 }
 
 return options

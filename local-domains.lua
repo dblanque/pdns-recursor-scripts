@@ -17,10 +17,25 @@ end
 function preresolve_lo(dq)
 	-- check blocklist
 	if local_domain_overrides:check(dq.qname) then
+		if dq.qtype == pdns.NS and g.options.private_zones_ns_override then
+			local qname = newDN(dq.qname)
+			if local_domain_overrides:check(dq.qname) then
+				local new_ns = {
+					"ns1."..local_domain_overrides:tostring(dq.qname),
+					"ns2."..local_domain_overrides:tostring(dq.qname),
+					"dns."..local_domain_overrides:tostring(dq.qname)
+				}
+				for index, ns in ipairs(new_ns) do
+					dq:addAnswer(pdns.NS, ns)
+				end
+				return true
+			end
+		end
+
 		if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
 			dq:addAnswer(pdns.A, g.options.private_zones_resolver_v4)
 		end
-		
+
 		if dq.qtype == pdns.AAAA or dq.qtype == pdns.ANY then
 			dq:addAnswer(pdns.AAAA, g.options.private_zones_resolver_v6)
 		end

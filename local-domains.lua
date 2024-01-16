@@ -31,7 +31,8 @@ local function preresolve_ns(dq)
 				local new_ns
 				local ns_override
 				local ns_override_man
-				if g.options.private_zones_ns_override_prefixes then 
+				if g.options.private_zones_ns_override_prefixes
+					and not g.options.private_zones_ns_override_map_only then
 					ns_override = table_len(g.options.private_zones_ns_override_prefixes) > 1
 				end
 				if g.options.private_zones_ns_override_map then
@@ -50,7 +51,7 @@ local function preresolve_ns(dq)
 							break
 						end
 					end
-				elseif ns_override and not g.options.private_zones_ns_override_map_only then
+				elseif ns_override then
 					new_ns = g.options.private_zones_ns_override_prefixes
 				else
 					new_ns = {

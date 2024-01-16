@@ -53,7 +53,7 @@ local function preresolve_ns(dq)
 					end
 				elseif ns_override then
 					new_ns = g.options.private_zones_ns_override_prefixes
-				else
+				elseif not g.options.private_zones_ns_override_map_only then
 					new_ns = {
 						"ns1",
 						"ns2",

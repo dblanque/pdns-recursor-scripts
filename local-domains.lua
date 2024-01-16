@@ -22,7 +22,7 @@ local function preresolve_ns(dq)
 	if not g.options.private_zones_ns_override then return false end
 
 	if dq.qtype == pdns.NS then
-		local qname = newDN(dq.qname)
+		local qname = newDN(tostring(dq.qname))
 		local parent
 		local modified = false
 		for i, domain in ipairs(local_domain_overrides_t) do

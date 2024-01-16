@@ -50,8 +50,17 @@ function empty_str(s)
 end
 
 function table_contains (tab, val)
-	for index, value in ipairs(tab) do
-		if value == val then
+	for i, v in ipairs(tab) do
+		if v == val then
+			return true
+		end
+	end
+	return false
+end
+
+function table_contains_key (tab, key)
+	for k, v in pairs(tab) do
+		if k == key then
 			return true
 		end
 	end

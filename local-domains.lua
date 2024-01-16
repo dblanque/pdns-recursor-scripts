@@ -32,10 +32,24 @@ local function preresolve_ns(dq)
 				parent = domain
 				local new_ns
 				local ns_override
+				local ns_override_man
 				if g.options.private_zones_ns_override_prefixes then 
 					ns_override = table_len(g.options.private_zones_ns_override_prefixes) > 1
 				end
-				if ns_override then
+				if g.options.private_zones_ns_override_map then 
+					if table_len(g.options.private_zones_ns_override_map) > 1 then
+						ns_override_man = table_contains(g.options.private_zones_ns_override_map, parent)
+					end
+				end
+				if ns_override_man then
+					new_ns = {}
+					for p, d in pairs(g.options.private_zones_ns_override_map) do
+						-- p == prefix, d == domain
+						if d == parent then
+							table.insert(new_ns, p)
+						end
+					end
+				elseif ns_override then
 					new_ns = g.options.private_zones_ns_override_prefixes
 				else
 					new_ns = {

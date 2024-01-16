@@ -23,29 +23,27 @@ local function preresolve_ns(dq)
 
 	if dq.qtype == pdns.NS then
 		local qname = newDN(tostring(dq.qname))
-		local parent
 		local modified = false
 		for i, domain in ipairs(local_domain_overrides_t) do
 			local parent_dn = newDN(domain)
 
 			if qname:isPartOf(parent_dn) then
-				parent = domain
 				local new_ns
 				local ns_override
 				local ns_override_man
 				if g.options.private_zones_ns_override_prefixes then 
 					ns_override = table_len(g.options.private_zones_ns_override_prefixes) > 1
 				end
-				if g.options.private_zones_ns_override_map then 
+				if g.options.private_zones_ns_override_map then
 					if table_len(g.options.private_zones_ns_override_map) > 1 then
-						ns_override_man = table_contains(g.options.private_zones_ns_override_map, parent)
+						ns_override_man = table_contains(g.options.private_zones_ns_override_map, domain, true)
 					end
 				end
 				if ns_override_man then
 					new_ns = {}
 					for p, d in pairs(g.options.private_zones_ns_override_map) do
 						-- p == prefix, d == domain
-						if d == parent then
+						if d == domain then
 							table.insert(new_ns, p)
 						end
 					end
@@ -59,7 +57,7 @@ local function preresolve_ns(dq)
 					}
 				end
 				for i, ns in ipairs(new_ns) do
-					dq:addAnswer(pdns.NS, ns .. "." .. parent, 300)
+					dq:addAnswer(pdns.NS, ns .. "." .. domain, 300)
 					if not modified then modified = true end
 				end
 				if modified == true then return modified end

@@ -49,16 +49,24 @@ function empty_str(s)
 	return s == nil or s == ''
 end
 
-function table_contains (tab, val)
-	for i, v in ipairs(tab) do
-		if v == val then
-			return true
+function table_contains(tab, val, has_keys)
+	if has_keys then
+		for k, v in pairs(tab) do
+			if v == val then
+				return true
+			end
+		end
+	else
+		for i, v in ipairs(tab) do
+			if v == val then
+				return true
+			end
 		end
 	end
 	return false
 end
 
-function table_contains_key (tab, key)
+function table_contains_key(tab, key)
 	for k, v in pairs(tab) do
 		if k == key then
 			return true

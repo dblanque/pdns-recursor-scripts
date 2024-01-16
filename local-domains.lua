@@ -25,6 +25,7 @@ local function preresolve_ns(dq)
 		local parent
 		local modified = false
 		for i, domain in ipairs(local_domain_overrides_t) do
+			pdnslog(domain, pdns.loglevels.Notice)
 			local parent_dn = newDN(domain)
 
 			if qname:isPartOf(parent_dn) then

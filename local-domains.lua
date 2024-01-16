@@ -30,13 +30,18 @@ local function preresolve_ns(dq)
 
 			if qname:isPartOf(parent_dn) then
 				parent = domain
-				local new_ns = {
-					"ns1."..parent,
-					"ns2."..parent,
-					"dns."..parent
-				}
+				local new_ns
+				if not table_len(g.options.private_zones_ns_override_prefixes) > 1 then
+					new_ns = {
+						"ns1.",
+						"ns2.",
+						"dns."
+					}
+				else
+					new_ns = g.options.private_zones_ns_override_prefixes
+				end
 				for i, ns in ipairs(new_ns) do
-					dq:addAnswer(pdns.NS, ns, 300)
+					dq:addAnswer(pdns.NS, ns .. "." .. parent, 300)
 					if not modified then modified = true end
 				end
 				if modified == true then return modified end

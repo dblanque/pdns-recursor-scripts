@@ -19,13 +19,13 @@ local function preresolve_ns(dq)
 	if not local_domain_overrides:check(dq.qname) then
 		return false
 	end
+	if not g.options.private_zones_ns_override then return false end
 
-	if dq.qtype == pdns.NS and g.options.private_zones_ns_override == true then
+	if dq.qtype == pdns.NS then
 		local qname = newDN(dq.qname)
 		local parent
 		local modified = false
 		for i, domain in ipairs(local_domain_overrides_t) do
-			pdnslog(domain, pdns.loglevels.Notice)
 			local parent_dn = newDN(domain)
 
 			if qname:isPartOf(parent_dn) then
@@ -52,7 +52,7 @@ function preresolve_lo(dq)
 	if not local_domain_overrides:check(dq.qname) then
 		return false
 	end
-	if dq.qtype == pdns.NS then
+	if dq.qtype == pdns.NS and g.options.private_zones_ns_override then
 		return false
 	end
 

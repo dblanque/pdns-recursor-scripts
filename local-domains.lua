@@ -2,10 +2,11 @@
 -- Add your Default Web Reverse Proxy or desired Internal IP for your domain.
 
 -- loads contents of a file line by line into the given table
-local function loadDSFile(filename, list)
+local function loadDSFile(filename, suffixMatchGroup, domainTable)
 	if fileExists(filename) then
 		for line in io.lines(filename) do
-			list:add(line)
+			suffixMatchGroup:add(line)
+			table.insert(domainTable, line)
 		end
 		pdnslog("loadDSFile(): " .. filename .. " successfully loaded", pdns.loglevels.Notice)
 	else
@@ -16,21 +17,26 @@ end
 -- this function is hooked before resolving starts
 function preresolve_lo(dq)
 	-- check blocklist
-	if local_domain_overrides:check(dq.qname) then
-		-- if dq.qtype == pdns.NS and g.options.private_zones_ns_override then
-		-- 	local ns_check = local_domain_overrides:check(dq.qname)
-		-- 	if ns_check then
-		-- 		local new_ns = {
-		-- 			"ns1."..zone,
-		-- 			"ns2."..zone,
-		-- 			"dns."..zone
-		-- 		}
-		-- 		for index, ns in ipairs(new_ns) do
-		-- 			dq:addAnswer(pdns.NS, ns)
-		-- 		end
-		-- 		return true
-		-- 	end
-		-- end
+		if dq.qtype == pdns.NS and g.options.private_zones_ns_override then
+			local qname = newDN(dq.qname)
+			local parent
+			for i, domain in ipairs(local_domain_overrides_t) do
+				if name:isPartOf(domain) then
+					parent = domain
+				end
+			end
+			if ns_check then
+				local new_ns = {
+					"ns1."..parent,
+					"ns2."..parent,
+					"dns."..parent
+				}
+				for i, ns in ipairs(new_ns) do
+					dq:addAnswer(pdns.NS, ns)
+				end
+				return true
+			end
+		end
 
 		if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
 			dq:addAnswer(pdns.A, g.options.private_zones_resolver_v4)
@@ -51,7 +57,8 @@ end
 if g.options.use_local_forwarder then
 	-- List of private domains
 	local_domain_overrides=newDS()
-	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides)
+	local_domain_overrides_t={}
+	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
 
 	pdnslog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
 	addResolveFunction("pre", "preresolve_lo", preresolve_lo)

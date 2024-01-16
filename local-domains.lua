@@ -35,7 +35,7 @@ function preresolve_lo(dq)
 				"dns."..parent
 			}
 			for i, ns in ipairs(new_ns) do
-				dq:addAnswer(pdns.NS, ns)
+				dq:addAnswer(pdns.NS, ns, 300)
 			end
 			return true
 		end

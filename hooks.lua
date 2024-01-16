@@ -79,6 +79,18 @@ function is_comment(v)
 	return false
 end
 
+-- src: https://stackoverflow.com/questions/1426954/split-string-in-lua
+function string_split (inputstr, sep)
+	if sep == nil then
+			sep = "%s"
+	end
+	local t={}
+	for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+			table.insert(t, str)
+	end
+	return t
+end
+
 -- returns true if the given file exists
 function fileExists(file)
 	local f = io.open(file, "rb")

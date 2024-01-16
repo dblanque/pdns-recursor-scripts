@@ -31,14 +31,18 @@ local function preresolve_ns(dq)
 			if qname:isPartOf(parent_dn) then
 				parent = domain
 				local new_ns
-				if g.options.private_zones_ns_override_prefixes and table_len(g.options.private_zones_ns_override_prefixes) > 1 then
+				local ns_override
+				if g.options.private_zones_ns_override_prefixes then 
+					ns_override = table_len(g.options.private_zones_ns_override_prefixes) > 1
+				end
+				if ns_override then
+					new_ns = g.options.private_zones_ns_override_prefixes
+				else
 					new_ns = {
 						"ns1",
 						"ns2",
 						"dns"
 					}
-				else
-					new_ns = g.options.private_zones_ns_override_prefixes
 				end
 				for i, ns in ipairs(new_ns) do
 					dq:addAnswer(pdns.NS, ns .. "." .. parent, 300)

@@ -24,6 +24,7 @@ function preresolve_lo(dq)
 		local qname = newDN(dq.qname)
 		local parent
 		local modified = false
+		pdnslog("Table Len: "..table_len(local_domain_overrides_t), pdns.loglevels.Notice)
 		for i, domain in ipairs(local_domain_overrides_t) do
 			local parent_dn = newDN(domain)
 			

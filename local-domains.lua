@@ -28,7 +28,7 @@ function preresolve_lo(dq)
 				parent = domain
 			end
 		end
-		if ns_check then
+		if newDN(parent) then
 			local new_ns = {
 				"ns1."..parent,
 				"ns2."..parent,

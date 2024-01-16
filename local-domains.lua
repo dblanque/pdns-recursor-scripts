@@ -41,10 +41,13 @@ local function preresolve_ns(dq)
 				end
 				if ns_override_man then
 					new_ns = {}
-					for p, d in pairs(g.options.private_zones_ns_override_map) do
+					for dom, s_list in pairs(g.options.private_zones_ns_override_map) do
 						-- p == prefix, d == domain
-						if d == domain then
-							table.insert(new_ns, p)
+						if dom == domain then
+							for i, suffix in ipairs(s_list) do
+								table.insert(new_ns, suffix)
+							end
+							break
 						end
 					end
 				elseif ns_override and not g.options.private_zones_ns_override_map_only then

@@ -28,23 +28,20 @@ function preresolve_lo(dq)
 			local parent_dn = newDN(domain)
 			if qname:isPartOf(parent_dn) then
 				parent = domain
+				local new_ns = {
+					"ns1."..parent,
+					"ns2."..parent,
+					"dns."..parent
+				}
+				for i, ns in ipairs(new_ns) do
+					dq:addAnswer(pdns.NS, ns, 300)
+					if not modified then modified = true end
+				end
+				if modified == true then return modified end
 			end
-		end
-		if newDN(parent) then
-			local new_ns = {
-				"ns1."..parent,
-				"ns2."..parent,
-				"dns."..parent
-			}
-			for i, ns in ipairs(new_ns) do
-				dq:addAnswer(pdns.NS, ns, 300)
-				if not modified then modified = true end
-			end
-			if modified == true then return modified end
 		end
 	end
 
-	local modified = false
 	if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
 		dq:addAnswer(pdns.A, g.options.private_zones_resolver_v4)
 	end

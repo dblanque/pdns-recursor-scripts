@@ -29,18 +29,18 @@ local function preresolve_ns(dq)
 
 			if qname:isPartOf(parent_dn) then
 				local new_ns
-				local ns_override
-				local ns_override_man
+				local ns_override_auto
+				local ns_override_map
 				if g.options.private_zones_ns_override_prefixes
 					and not g.options.private_zones_ns_override_map_only then
-					ns_override = table_len(g.options.private_zones_ns_override_prefixes) > 1
+					ns_override_auto = table_len(g.options.private_zones_ns_override_prefixes) > 1
 				end
 				if g.options.private_zones_ns_override_map then
 					if table_len(g.options.private_zones_ns_override_map) > 1 then
-						ns_override_man = table_contains(g.options.private_zones_ns_override_map, domain, true)
+						ns_override_map = table_contains(g.options.private_zones_ns_override_map, domain, true)
 					end
 				end
-				if ns_override_man then
+				if ns_override_map then
 					new_ns = {}
 					for dom, s_list in pairs(g.options.private_zones_ns_override_map) do
 						-- p == prefix, d == domain
@@ -51,7 +51,7 @@ local function preresolve_ns(dq)
 							break
 						end
 					end
-				elseif ns_override then
+				elseif ns_override_auto then
 					new_ns = g.options.private_zones_ns_override_prefixes
 				elseif not g.options.private_zones_ns_override_map_only then
 					new_ns = {

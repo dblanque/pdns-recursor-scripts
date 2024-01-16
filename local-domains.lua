@@ -45,7 +45,7 @@ local function preresolve_ns(dq)
 					for dom, s_list in pairs(g.options.private_zones_ns_override_map) do
 						-- p == prefix, d == domain
 						if dom == domain then
-							for i, suffix in ipairs(s_list) do
+							for k, suffix in pairs(s_list) do
 								table.insert(new_ns, suffix)
 							end
 							break

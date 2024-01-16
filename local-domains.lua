@@ -25,7 +25,8 @@ function preresolve_lo(dq)
 		local parent
 		local modified = false
 		for i, domain in ipairs(local_domain_overrides_t) do
-			if qname:isPartOf(domain) then
+			local parent_dn = newDN(domain)
+			if qname:isPartOf(parent_dn) then
 				parent = domain
 			end
 		end

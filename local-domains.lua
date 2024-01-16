@@ -14,21 +14,19 @@ local function loadDSFile(filename, suffixMatchGroup, domainTable)
 	end
 end
 
--- this function is hooked before resolving starts
-function preresolve_lo(dq)
+local function preresolve_ns(dq)
 	-- check blocklist
 	if not local_domain_overrides:check(dq.qname) then
 		return false
 	end
-	if dq.qtype == pdns.NS and g.options.private_zones_ns_override then
+
+	if dq.qtype == pdns.NS and g.options.private_zones_ns_override == true then
 		local qname = newDN(dq.qname)
 		local parent
 		local modified = false
-		pdnslog("Table Len: "..table_len(local_domain_overrides_t), pdns.loglevels.Notice)
 		for i, domain in ipairs(local_domain_overrides_t) do
 			local parent_dn = newDN(domain)
-			
-			pdnslog(dq.qname..":isPartOf("..parent.."):"..qname:isPartOf(parent_dn), pdns.loglevels.Notice)
+
 			if qname:isPartOf(parent_dn) then
 				parent = domain
 				local new_ns = {
@@ -43,6 +41,18 @@ function preresolve_lo(dq)
 				if modified == true then return modified end
 			end
 		end
+	end
+	return false
+end
+
+-- this function is hooked before resolving starts
+function preresolve_lo(dq)
+	-- check blocklist
+	if not local_domain_overrides:check(dq.qname) then
+		return false
+	end
+	if dq.qtype == pdns.NS then
+		return false
 	end
 
 	if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
@@ -64,8 +74,9 @@ if g.options.use_local_forwarder then
 	local_domain_overrides_t={}
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
 
-	pdnslog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
+	-- pdnslog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
 	addResolveFunction("pre", "preresolve_lo", preresolve_lo)
+	addResolveFunction("pre", "preresolve_ns", preresolve_ns)
 else
 	pdnslog("Local Domain Forwarder Override not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)
 end

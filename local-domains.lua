@@ -47,7 +47,7 @@ local function preresolve_ns(dq)
 							table.insert(new_ns, p)
 						end
 					end
-				elseif ns_override then
+				elseif ns_override and not g.options.private_zones_ns_override_map_only then
 					new_ns = g.options.private_zones_ns_override_prefixes
 				else
 					new_ns = {

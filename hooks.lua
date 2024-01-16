@@ -104,10 +104,10 @@ function preresolve(dq)
 	for index, f_name in ipairs(g.preresolve_index) do
 		local f = g.preresolve_functions[f_name]
 		if not f then
-			pdnslog("preresolve f() Function Index Mis-match: "..f_name, pdns.loglevels.Notice)
+			pdnslog("preresolve f() Function Index Mis-match: "..f_name, pdns.loglevels.Warning)
 			goto continue
 		end
-		pdnslog("preresolve f(): "..f_name, pdns.loglevels.Notice)
+		-- pdnslog("preresolve f(): "..f_name, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result == true then return result end
 		::continue::
@@ -119,10 +119,10 @@ function postresolve(dq)
 	for index, f_name in ipairs(g.postresolve_index) do
 		local f = g.postresolve_functions[f_name]
 		if not f then
-			pdnslog("postresolve f() Function Index Mis-match: "..f_name, pdns.loglevels.Notice)
+			pdnslog("postresolve f() Function Index Mis-match: "..f_name, pdns.loglevels.Warning)
 			goto continue
 		end
-		pdnslog("postresolve f(): "..f_name, pdns.loglevels.Notice)
+		-- pdnslog("postresolve f(): "..f_name, pdns.loglevels.Notice)
 		local result = f(dq)
 		if result == true then return result end
 		::continue::

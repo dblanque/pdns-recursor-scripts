@@ -37,7 +37,7 @@ local function preresolve_ns(dq)
 				end
 				if g.options.private_zones_ns_override_map then
 					if table_len(g.options.private_zones_ns_override_map) >= 1 then
-						ns_override_map = table_contains(g.options.private_zones_ns_override_map, domain, true)
+						ns_override_map = table_contains_key(g.options.private_zones_ns_override_map, domain)
 					end
 				end
 				if ns_override_map then

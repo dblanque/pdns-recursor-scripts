@@ -17,36 +17,39 @@ end
 -- this function is hooked before resolving starts
 function preresolve_lo(dq)
 	-- check blocklist
-		if dq.qtype == pdns.NS and g.options.private_zones_ns_override then
-			local qname = newDN(dq.qname)
-			local parent
-			for i, domain in ipairs(local_domain_overrides_t) do
-				if name:isPartOf(domain) then
-					parent = domain
-				end
-			end
-			if ns_check then
-				local new_ns = {
-					"ns1."..parent,
-					"ns2."..parent,
-					"dns."..parent
-				}
-				for i, ns in ipairs(new_ns) do
-					dq:addAnswer(pdns.NS, ns)
-				end
-				return true
+	if not local_domain_overrides:check(dq.qname) then
+		return false
+	end
+	if dq.qtype == pdns.NS and g.options.private_zones_ns_override then
+		local qname = newDN(dq.qname)
+		local parent
+		for i, domain in ipairs(local_domain_overrides_t) do
+			if name:isPartOf(domain) then
+				parent = domain
 			end
 		end
-
-		if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
-			dq:addAnswer(pdns.A, g.options.private_zones_resolver_v4)
+		if ns_check then
+			local new_ns = {
+				"ns1."..parent,
+				"ns2."..parent,
+				"dns."..parent
+			}
+			for i, ns in ipairs(new_ns) do
+				dq:addAnswer(pdns.NS, ns)
+			end
 			return true
 		end
+	end
 
-		if dq.qtype == pdns.AAAA or dq.qtype == pdns.ANY then
-			dq:addAnswer(pdns.AAAA, g.options.private_zones_resolver_v6)
-			return true
-		end
+	if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
+		dq:addAnswer(pdns.A, g.options.private_zones_resolver_v4)
+		return true
+	end
+
+	if dq.qtype == pdns.AAAA or dq.qtype == pdns.ANY then
+		dq:addAnswer(pdns.AAAA, g.options.private_zones_resolver_v6)
+		return true
+	end
 
 	-- default, do not rewrite this response
 	return false

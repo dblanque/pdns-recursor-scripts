@@ -23,8 +23,9 @@ function preresolve_lo(dq)
 	if dq.qtype == pdns.NS and g.options.private_zones_ns_override then
 		local qname = newDN(dq.qname)
 		local parent
+		local modified
 		for i, domain in ipairs(local_domain_overrides_t) do
-			if name:isPartOf(domain) then
+			if qname:isPartOf(domain) then
 				parent = domain
 			end
 		end
@@ -35,9 +36,10 @@ function preresolve_lo(dq)
 				"dns."..parent
 			}
 			for i, ns in ipairs(new_ns) do
-				dq:addAnswer(pdns.NS, ns)
+				dq:addAnswer(pdns.NS, ns, 300)
+				if not modified then modified = true end
 			end
-			return true
+			return modified
 		end
 	end
 

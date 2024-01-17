@@ -15,7 +15,8 @@ local options = {
 	override_map = {}, -- Format: { ["sub.example.com"]= {TYPE:"A", {"value1","value2"  (...) }, TTL:300, REPLACE_ANY:false} }
 
 	-- Escape dots with double backslash \\.
-	regex_map = {} -- Format: { ["*.example.com"]= {TYPE:"A", {"value1","value2"  (...) }, TTL:300, REPLACE_ANY:false} }
+	regex_map = {}, -- Format: { ["*.example.com"]= {TYPE:"A", {"value1","value2"  (...) }, TTL:300, REPLACE_ANY:false} }
+	default_ttl = 3600
 }
 
 return options

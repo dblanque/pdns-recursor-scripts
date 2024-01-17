@@ -47,7 +47,7 @@ local function preresolve_override(dq)
 			local dq_replace_any = dq_override[4]
 			if not valid_type_replace(dq.qtype, pdns[dq_type]) and not dq_replace_any then goto continue end
 			local dq_values = dq_override[2]
-			local dq_ttl = dq_override[3] or 300
+			local dq_ttl = dq_override[3] or g.options.default_ttl
 			for i, v in ipairs(dq_values) do
 				dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 			end
@@ -73,7 +73,7 @@ local function preresolve_regex(dq)
 		local dq_replace_any = dq_override[4]
 		if not valid_type_replace(dq.qtype, pdns[dq_type]) and not dq_replace_any then goto continue end
 		local dq_values = dq_override[2]
-		local dq_ttl = dq_override[3] or 300
+		local dq_ttl = dq_override[3] or g.options.default_ttl
 		for i, v in ipairs(dq_values) do
 			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		end
@@ -150,11 +150,11 @@ local function preresolve_lo(dq)
 	end
 
 	if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
-		dq:addAnswer(pdns.A, g.options.private_zones_resolver_v4)
+		dq:addAnswer(pdns.A, g.options.private_zones_resolver_v4, g.options.default_ttl)
 	end
 
 	if dq.qtype == pdns.AAAA or dq.qtype == pdns.ANY then
-		dq:addAnswer(pdns.AAAA, g.options.private_zones_resolver_v6)
+		dq:addAnswer(pdns.AAAA, g.options.private_zones_resolver_v6, g.options.default_ttl)
 	end
 
 	-- default, do not rewrite this response

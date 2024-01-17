@@ -136,6 +136,7 @@ end
 function preresolve(dq)
 	if g.options.do_not_override and table_len(g.options.do_not_override) >= 1 then
 		for index, qname in ipairs(g.options.do_not_override) do
+			pdnslog(qname == qname_remove_trailing_dot(dq).." "..qname.." "..qname_remove_trailing_dot(dq), pdns.loglevels.Notice)
 			if qname == qname_remove_trailing_dot(dq) then
 				return false
 			end

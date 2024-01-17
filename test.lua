@@ -2,7 +2,7 @@ local re
 local re_pattern_adblock='^(\\|){2}(.*)\\^$' -- Matches Adblock Format
 local re_chars="(.*)[$^|](.*)" -- Matches PCRE Format
 local re_wild="^[*.]" -- Matches Wildcard Format
-local test_re="^(mail|smtp|imap|smtps|smtp)\\..*$"
+local test_re=".*\\.?example.com"
 local test_val="mail.example.com"
 
 local s_test_adblock="||example-dom.com^"

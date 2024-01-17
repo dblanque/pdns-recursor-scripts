@@ -20,7 +20,7 @@ local function preresolve_override(dq)
 	if table_contains_key(g.options.override_map, qname) then
 		for key, value in pairs(g.options.override_map) do
 			if key ~= qname then goto continue end
-			local dq_override = string_split(value)
+			local dq_override = value
 			local dq_type = dq_override[1]
 			if dq.qtype ~= pdns[dq_type] then goto continue end
 			local dq_value = dq_override[2]

@@ -16,15 +16,21 @@ end
 
 local function preresolve_override(dq)
 	local qname = qname_remove_trailing_dot(dq)
+	local overridden = false
 	if table_contains_key(g.options.override_map, qname) then
-		local dq_override = string_split(g.options.override_map[qname])
-		local dq_type = dq_override[1]
-		local dq_value = dq_override[2]
-		local dq_ttl = dq_override[3] or 3600
-		dq:addAnswer(pdns[dq_type], dq_value, dq_ttl) -- Type, Value, TTL
-		return true
+		for key, value in pairs(g.options.override_map) do
+			if key ~= qname then goto continue end
+			local dq_override = string_split(value)
+			local dq_type = dq_override[1]
+			if dq.qtype ~= pdns[dq_type] then goto continue end
+			local dq_value = dq_override[2]
+			local dq_ttl = dq_override[3] or 3600
+			dq:addAnswer(pdns[dq_type], dq_value, dq_ttl) -- Type, Value, TTL
+			::continue::
+		end
+		if not overridden then overridden = true end
 	end
-	return false
+	return overridden
 end
 
 local function preresolve_ns(dq)

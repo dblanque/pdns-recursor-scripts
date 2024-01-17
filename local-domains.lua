@@ -1,5 +1,13 @@
 -- Split DNS Filtering
 -- Add your Default Web Reverse Proxy or desired Internal IP for your domain.
+if isModuleAvailable("rex_pcre") then
+	re = require"rex_pcre"
+elseif isModuleAvailable("rex_pcre2") then
+	re = require"rex_pcre2"
+else
+	pdnslog("pdns-recursor-scripts local-domains.lua requires rex_pcre or rex_pcre2 to be installed", pdns.loglevels.Error)
+	return false
+end
 
 -- loads contents of a file line by line into the given table
 local function loadDSFile(filename, suffixMatchGroup, domainTable)
@@ -15,6 +23,8 @@ local function loadDSFile(filename, suffixMatchGroup, domainTable)
 end
 
 local function preresolve_override(dq)
+	-- check blocklist
+	if not local_domain_overrides:check(dq.qname) then return false end
 	local qname = qname_remove_trailing_dot(dq)
 	local overridden = false
 	if table_contains_key(g.options.override_map, qname) then
@@ -31,6 +41,27 @@ local function preresolve_override(dq)
 			if not overridden then overridden = true end
 			::continue::
 		end
+	end
+	return overridden
+end
+
+local function preresolve_regex(dq)
+	-- check blocklist
+	if not local_domain_overrides:check(dq.qname) then return false end
+	local qname = qname_remove_trailing_dot(dq)
+	local overridden = false
+	for key, value in pairs(g.options.regex_map) do
+		if not re.match(qname, key) then goto continue end
+		local dq_override = value
+		local dq_type = dq_override[1]
+		if dq.qtype ~= pdns[dq_type] then goto continue end
+		local dq_values = dq_override[2]
+		local dq_ttl = dq_override[3] or 300
+		for i, v in ipairs(dq_values) do
+			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
+		end
+		if not overridden then overridden = true end
+		::continue::
 	end
 	return overridden
 end
@@ -120,6 +151,9 @@ if g.options.use_local_forwarder then
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
 	if g.options.override_map and table_len(g.options.override_map) >= 1 then
 		addResolveFunction("pre", "preresolve_override", preresolve_override)
+	end
+	if g.options.regex_map and table_len(g.options.regex_map) >= 1 then
+		addResolveFunction("pre", "preresolve_regex", preresolve_regex)
 	end
 
 	-- pdnslog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)

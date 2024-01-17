@@ -22,19 +22,9 @@ local function loadDSFile(filename, suffixMatchGroup, domainTable)
 	end
 end
 
-local function qname_is_local_domain(dq_qname)
-	local qname = newDN(tostring(dq_qname))	
-	for i, domain in ipairs(local_domain_overrides_t) do
-		local parent_dn = newDN(domain)
-		if qname:isPartOf(parent_dn) then
-			return domain
-		end
-	end
-end
-
 local function preresolve_override(dq)
 	-- check blocklist
-	if not qname_is_local_domain(dq.qname) then return false end
+	if not local_domain_overrides:check(dq.qname) then return false end
 	local qname = qname_remove_trailing_dot(dq)
 	local overridden = false
 	if table_contains_key(g.options.override_map, qname) then

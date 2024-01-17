@@ -134,6 +134,8 @@ for i, k in ipairs(g.postresolve_index) do
 end
 
 function preresolve(dq)
+	pdnslog(g.options.do_not_override, pdns.loglevels.Notice)
+	pdnslog(table_len(g.options.do_not_override), pdns.loglevels.Notice)
 	if g.options.do_not_override and table_len(g.options.do_not_override) >= 1 then
 		for index, qname in ipairs(g.options.do_not_override) do
 			pdnslog(qname == qname_remove_trailing_dot(dq).." "..qname.." "..qname_remove_trailing_dot(dq), pdns.loglevels.Notice)

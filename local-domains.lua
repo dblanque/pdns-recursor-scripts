@@ -16,9 +16,7 @@ end
 
 local function preresolve_ns(dq)
 	-- check blocklist
-	if not local_domain_overrides:check(dq.qname) then
-		return false
-	end
+	if not local_domain_overrides:check(dq.qname) then return false end
 	if not g.options.private_zones_ns_override then return false end
 
 	if dq.qtype == pdns.NS then

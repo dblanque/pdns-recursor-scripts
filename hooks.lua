@@ -108,6 +108,10 @@ function string_split (inputstr, sep)
 	return t
 end
 
+function qname_remove_trailing_dot(dq)
+	return string.sub(tostring(dq.qname), 1, -2)
+end
+
 -- returns true if the given file exists
 function fileExists(file)
 	local f = io.open(file, "rb")
@@ -132,7 +136,7 @@ end
 function preresolve(dq)
 	if g.options.do_not_override and table_len(g.options.do_not_override) >= 1 then
 		for index, qname in ipairs(g.options.do_not_override) do
-			if qname == tostring(dq.qname) then
+			if qname == qname_remove_trailing_dot(dq) then
 				return false
 			end
 		end

@@ -32,7 +32,14 @@ local function preresolve_override(dq)
 			if key ~= qname then goto continue end
 			local dq_override = value
 			local dq_type = dq_override[1]
-			if dq.qtype ~= pdns[dq_type] then goto continue end
+			if dq.qtype ~= pdns[dq_type] and
+				(
+					(dq.qtype == pdns.A and pdns[dq_type] ~= pdns.CNAME) or
+					(dq.qtype == pdns.AAAA and pdns[dq_type] ~= pdns.CNAME)
+				)
+				then
+				goto continue
+			end
 			local dq_values = dq_override[2]
 			local dq_ttl = dq_override[3] or 300
 			for i, v in ipairs(dq_values) do

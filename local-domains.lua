@@ -23,12 +23,14 @@ local function preresolve_override(dq)
 			local dq_override = value
 			local dq_type = dq_override[1]
 			if dq.qtype ~= pdns[dq_type] then goto continue end
-			local dq_value = dq_override[2]
-			local dq_ttl = dq_override[3] or 3600
-			dq:addAnswer(pdns[dq_type], dq_value, dq_ttl) -- Type, Value, TTL
+			local dq_values = dq_override[2]
+			local dq_ttl = dq_override[3] or 300
+			for i, v in ipairs(dq_values) do
+				dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
+			end
+			if not overridden then overridden = true end
 			::continue::
 		end
-		if not overridden then overridden = true end
 	end
 	return overridden
 end

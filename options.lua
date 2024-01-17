@@ -8,7 +8,7 @@ local options = {
 	private_zones_ns_override_map = {}, -- Format: key: prefix (ns1), value: domain (example.com) => ns1.example.com
 	private_zones_ns_override_map_only = false, -- Only apply NS Overrides if mapped
 	private_zones_ns_override = false,
-	do_not_override = {} -- For name entries that must not be overwritten
+	override_map = {} -- Format is Table of Tables (Query Name is Key): TYPE,VALUE,TTL
 }
 
 return options

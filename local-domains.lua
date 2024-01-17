@@ -14,6 +14,19 @@ local function loadDSFile(filename, suffixMatchGroup, domainTable)
 	end
 end
 
+local function preresolve_override(dq)
+	local qname = qname_remove_trailing_dot(dq)
+	if table_contains_key(g.options.override_map, qname) then
+		local dq_override = string_split(g.options.override_map[qname])
+		local dq_type = dq_override[1]
+		local dq_value = dq_override[2]
+		local dq_ttl = dq_override[3] or 3600
+		dq:addAnswer(pdns[dq_type], dq_value, dq_ttl) -- Type, Value, TTL
+		return true
+	end
+	return false
+end
+
 local function preresolve_ns(dq)
 	-- check blocklist
 	if not local_domain_overrides:check(dq.qname) then return false end
@@ -90,12 +103,16 @@ local function preresolve_lo(dq)
 	return true
 end
 
--- Add preresolve function to table
+-- Add preresolve functions to table, ORDER MATTERS
 if g.options.use_local_forwarder then
+	
 	-- List of private domains
 	local_domain_overrides=newDS()
 	local_domain_overrides_t={}
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
+	if g.options.override_map and table_len(g.options.override_map) >= 1 then
+		addResolveFunction("pre", "preresolve_override", preresolve_override)
+	end
 
 	-- pdnslog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
 	addResolveFunction("pre", "preresolve_lo", preresolve_lo)

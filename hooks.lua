@@ -67,12 +67,14 @@ function table_contains(tab, val, has_keys)
 end
 
 function table_contains_key(tab, key)
-	for k, v in pairs(tab) do
-		if k == key then
-			return true
-		end
-	end
+	if tab[key] ~= nil then return true end
 	return false
+	-- for k, v in pairs(tab) do
+	-- 	if k == key then
+	-- 		return true
+	-- 	end
+	-- end
+	-- return false
 end
 
 function table_len(T)
@@ -97,7 +99,7 @@ function is_comment(v)
 end
 
 -- src: https://stackoverflow.com/questions/1426954/split-string-in-lua
-function string_split (inputstr, sep)
+function string_split(inputstr, sep)
 	if sep == nil then
 			sep = "%s"
 	end
@@ -131,17 +133,6 @@ for i, k in ipairs(g.preresolve_index) do
 end
 for i, k in ipairs(g.postresolve_index) do
 	pdnslog(k.." postresolve function loaded.", pdns.loglevels.Notice)
-end
-
-local function no_override_dq(dq)
-	if g.options.do_not_override and table_len(g.options.do_not_override) >= 1 then
-		for index, qname in ipairs(g.options.do_not_override) do
-			if qname == qname_remove_trailing_dot(dq) then
-				return true
-			end
-		end
-	end
-	return false
 end
 
 function preresolve(dq)

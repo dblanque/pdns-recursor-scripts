@@ -47,7 +47,10 @@ end
 
 local function preresolve_regex(dq)
 	-- check blocklist
-	if not local_domain_overrides:check(dq.qname) then return false end
+	if not local_domain_overrides:check(dq.qname) then 
+		pdnslog("loadDSFile(): Ignoring REGEX Pre-resolve for "..tostring(dq.qname), pdns.loglevels.Notice)
+		return false
+	end
 	local qname = qname_remove_trailing_dot(dq)
 	local overridden = false
 	for key, value in pairs(g.options.regex_map) do

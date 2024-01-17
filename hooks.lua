@@ -136,7 +136,6 @@ for i, k in ipairs(g.postresolve_index) do
 end
 
 function preresolve(dq)
-	if no_override_dq(dq) then return false end
 	for index, f_name in ipairs(g.preresolve_index) do
 		local f = g.preresolve_functions[f_name]
 		if not f then

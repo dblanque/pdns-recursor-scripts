@@ -130,6 +130,13 @@ for i, k in ipairs(g.postresolve_index) do
 end
 
 function preresolve(dq)
+	if g.options.do_not_override and table_len(g.options.do_not_override) >= 1 then
+		for index, qname in ipairs(g.options.do_not_override) do
+			if qname == tostring(dq.qname) then
+				return false
+			end
+		end
+	end
 	for index, f_name in ipairs(g.preresolve_index) do
 		local f = g.preresolve_functions[f_name]
 		if not f then

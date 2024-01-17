@@ -63,6 +63,8 @@ local function preresolve_regex(dq)
 		for i, v in ipairs(dq_values) do
 			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		end
+		
+		pdnslog("loadDSFile(): REGEX Overridden Result: "..overridden, pdns.loglevels.Notice)
 		if not overridden then overridden = true end
 		::continue::
 	end

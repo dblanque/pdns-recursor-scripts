@@ -133,19 +133,19 @@ for i, k in ipairs(g.postresolve_index) do
 	pdnslog(k.." postresolve function loaded.", pdns.loglevels.Notice)
 end
 
-local function override_dq(dq)
+local function no_override_dq(dq)
 	if g.options.do_not_override and table_len(g.options.do_not_override) >= 1 then
 		for index, qname in ipairs(g.options.do_not_override) do
 			if qname == qname_remove_trailing_dot(dq) then
-				return false
+				return true
 			end
 		end
 	end
-	return true
+	return false
 end
 
 function preresolve(dq)
-	if not override_dq(dq) then return false end
+	if no_override_dq(dq) then return false end
 	for index, f_name in ipairs(g.preresolve_index) do
 		local f = g.preresolve_functions[f_name]
 		if not f then

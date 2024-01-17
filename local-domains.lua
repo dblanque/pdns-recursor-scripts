@@ -22,6 +22,18 @@ local function loadDSFile(filename, suffixMatchGroup, domainTable)
 	end
 end
 
+local function valid_type_replace(dq_type, replace_type)
+	if dq_type ~= replace_type and
+		(
+			(dq_type == pdns.A and replace_type ~= pdns.CNAME) or
+			(dq_type == pdns.AAAA and replace_type ~= pdns.CNAME)
+		)
+		then
+		return false
+	end
+	return true
+end
+
 local function preresolve_override(dq)
 	-- check blocklist
 	if not local_domain_overrides:check(dq.qname) then return false end
@@ -32,14 +44,7 @@ local function preresolve_override(dq)
 			if key ~= qname then goto continue end
 			local dq_override = value
 			local dq_type = dq_override[1]
-			if dq.qtype ~= pdns[dq_type] and
-				(
-					(dq.qtype == pdns.A and pdns[dq_type] ~= pdns.CNAME) or
-					(dq.qtype == pdns.AAAA and pdns[dq_type] ~= pdns.CNAME)
-				)
-				then
-				goto continue
-			end
+			if not valid_type_replace(dq.qtype, pdns[dq_type]) then goto continue end
 			local dq_values = dq_override[2]
 			local dq_ttl = dq_override[3] or 300
 			for i, v in ipairs(dq_values) do
@@ -64,13 +69,9 @@ local function preresolve_regex(dq)
 		if not re.match(qname, key) then goto continue end
 		local dq_override = value
 		local dq_type = dq_override[1]
-		if dq.qtype ~= pdns[dq_type] and
-			(
-				(dq.qtype == pdns.A and pdns[dq_type] ~= pdns.CNAME) or
-				(dq.qtype == pdns.AAAA and pdns[dq_type] ~= pdns.CNAME)
-			)
-			then
-			goto continue
+		if not valid_type_replace(dq.qtype, pdns[dq_type]) then goto continue end
+		if pdns[dq_type] == pdns.CNAME then
+			DNSBackend:lookup()
 		end
 		local dq_values = dq_override[2]
 		local dq_ttl = dq_override[3] or 300

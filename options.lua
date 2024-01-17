@@ -12,10 +12,10 @@ local options = {
 	-- Support multiple overrides
 	private_zones_ns_override_map = {}, -- Format: { ["sub.example.com"]={"ns1","ns2"  (...) } }
 	-- Support multiple overrides
-	override_map = {}, -- Format: { ["sub.example.com"]= {TYPE:"A", {"value1","value2"  (...) }, TTL:300} }
+	override_map = {}, -- Format: { ["sub.example.com"]= {TYPE:"A", {"value1","value2"  (...) }, TTL:300, REPLACE_ANY:false} }
 
 	-- Escape dots with double backslash \\.
-	regex_map = {} -- Format: { ["*.example.com"]= {TYPE:"A", {"value1","value2"  (...) }, TTL:300} }
+	regex_map = {} -- Format: { ["*.example.com"]= {TYPE:"A", {"value1","value2"  (...) }, TTL:300, REPLACE_ANY:false} }
 }
 
 return options

@@ -2,6 +2,8 @@ local re
 local re_pattern_adblock='^(\\|){2}(.*)\\^$' -- Matches Adblock Format
 local re_chars="(.*)[$^|](.*)" -- Matches PCRE Format
 local re_wild="^[*.]" -- Matches Wildcard Format
+local test_re="^(mail|smtp|imap|smtps|smtp)\\..*$"
+local test_val="mail.example.com"
 
 local s_test_adblock="||example-dom.com^"
 local s_test_normal="example-dom.com"
@@ -50,4 +52,10 @@ for key, line in pairs(s_tests) do
 	else -- STANDARD HOSTS FORMAT
 		print("STANDARD: ".." (Index: "..key..") "..line)
 	end
+end
+
+if re.match(test_val, test_re) then
+	print("Test Regex Matched")
+else
+	print("Test Regex was not Matched")
 end

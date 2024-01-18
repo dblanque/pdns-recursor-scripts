@@ -61,7 +61,7 @@ end
 local function preresolve_regex(dq)
 	-- check blocklist
 	if not local_domain_overrides:check(dq.qname) then 
-		pdnslog("loadDSFile(): Ignoring REGEX Pre-resolve for "..tostring(dq.qname), pdns.loglevels.Notice)
+		pdnslog("loadDSFile(): Ignoring REGEX Pre-resolve for "..tostring(dq.qname), pdns.loglevels.Debug)
 		return false
 	end
 	local qname = qname_remove_trailing_dot(dq)
@@ -78,7 +78,7 @@ local function preresolve_regex(dq)
 			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		end
 		
-		pdnslog("loadDSFile(): REGEX Overridden Result: "..tostring(overridden), pdns.loglevels.Notice)
+		pdnslog("loadDSFile(): REGEX Overridden Result: "..tostring(overridden), pdns.loglevels.Debug)
 		if not overridden then overridden = true end
 		::continue::
 	end

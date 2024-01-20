@@ -94,6 +94,20 @@ local options_overrides = {
 return options_overrides
 ```
 
+# RE-LOADING DNSBL/IPBL
+
+To reload the lists all you need to do is execute the following command:
+
+`rec_control reload-lua-script`
+OR
+`rec_control reload-lua-script /etc/powerdns/pdns-recursor-scripts/hooks.lua`
+
+You may also add this onto a cronjob with the following format to reload every day at 00:00.
+
+```cron
+00 00   * * *   root    rec_control reload-lua-script /etc/powerdns/pdns-recursor-scripts/hooks.lua 2&>1 /dev/null
+```
+
 # SUPPORTED
 
 ## Supported Syntaxes

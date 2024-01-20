@@ -116,11 +116,11 @@ return options_overrides
 
 The following PowerDNS Documents were used as reference.
 
-<https://docs.powerdns.com/authoritative/genindex.html>
-<https://docs.powerdns.com/recursor/lua-scripting/configure.html>
-<https://docs.powerdns.com/recursor/lua-scripting/index.html>
-<https://docs.powerdns.com/recursor/lua-scripting/dq.html#dnsrecord-object>
-<https://docs.powerdns.com/recursor/lua-scripting/netmask.html>
+* <https://docs.powerdns.com/authoritative/genindex.html>
+* <https://docs.powerdns.com/recursor/lua-scripting/configure.html>
+* <https://docs.powerdns.com/recursor/lua-scripting/index.html>
+* <https://docs.powerdns.com/recursor/lua-scripting/dq.html#dnsrecord-object>
+* <https://docs.powerdns.com/recursor/lua-scripting/netmask.html>
 
 # CONTRIBUTING
 

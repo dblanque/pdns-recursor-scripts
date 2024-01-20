@@ -150,11 +150,11 @@ local function preresolve_lo(dq)
 	end
 
 	if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
-		dq:addAnswer(pdns.A, g.options.private_zones_resolver_v4, g.options.default_ttl)
+		dq:addAnswer(pdns.A, g.options.internal_reverse_proxy_v4, g.options.default_ttl)
 	end
 
 	if dq.qtype == pdns.AAAA or dq.qtype == pdns.ANY then
-		dq:addAnswer(pdns.AAAA, g.options.private_zones_resolver_v6, g.options.default_ttl)
+		dq:addAnswer(pdns.AAAA, g.options.internal_reverse_proxy_v6, g.options.default_ttl)
 	end
 
 	-- default, do not rewrite this response

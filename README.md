@@ -42,16 +42,16 @@ lua-dns-script=/etc/powerdns/pdns-recursor-scripts/hooks.lua
 ## Local Domain Overriding
 
 For Split DNS (and to reduce the usage of NAT Reflection) you may use the following
-options in the `/etc/powerdns/pdns-recursor-scripts/overrides.lua` file.
+options in the `/etc/powerdns/pdns-recursor-scripts/conf.d/local-resolve.lua` directory.
 
 Bear in mind you must also configure your internal domains in the `local-domains.list`
-file for this feature to work properly.
+file for this feature to work properly `(See local-domains-example.list)`.
 
 You can override NS Servers for your local zones, as well as standard record types
 such as CNAME, A, and AAAA, for example.
 
 ```lua
-local options_overrides = {
+return {
         internal_reverse_proxy_v4 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
         internal_reverse_proxy_v6 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
         use_local_forwarder = true,
@@ -78,20 +78,18 @@ local options_overrides = {
         },
         default_ttl = 900
 }
-return options_overrides
 ```
 
 ## Malware Filtering
 
 For Blocklists and some Malware Filtering DNS you may use the following
-options in the `/etc/powerdns/pdns-recursor-scripts/overrides.lua`.
+options in the `/etc/powerdns/pdns-recursor-scripts/conf.d/malware-filter.lua`.
 
 ```lua
-local options_overrides = {
+return {
 	use_dnsbl = true, -- If you want to DNSBL files (.list|.txt) in the dnsbl.d directory
 	use_ipbl = true -- If you want IPBL files (.list|.txt) in the ipbl.d directory
 }
-return options_overrides
 ```
 
 # RE-LOADING DNSBL/IPBL

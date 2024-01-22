@@ -98,7 +98,7 @@ function f.string_split(inputstr, sep)
 end
 
 function f.qname_remove_trailing_dot(dq)
-	return string.sub(tostring(dq.qname), 1, -2)
+	return tostring(string.sub(tostring(dq.qname), 1, -2))
 end
 
 -- returns true if the given file exists

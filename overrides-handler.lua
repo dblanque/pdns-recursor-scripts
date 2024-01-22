@@ -18,9 +18,10 @@ local function get_lua_modules_in_conf(search_dir, fullpath)
 	return files
 end
 
-for index, lua_file in ipairs(get_lua_modules_in_conf(conf_d_path, true)) do
+for index, lua_file in ipairs(get_lua_modules_in_conf(conf_d_path, false)) do
 	pdnslog("Loading config file: " .. lua_file, pdns.loglevels.Notice)
-	dofile(lua_file)
+	local new_set = require(lua_file)
+	if new_set then options_overrides = new_set end
 end
 
 return options_overrides

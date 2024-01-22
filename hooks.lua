@@ -1,5 +1,5 @@
 -- Set package path
-g={}
+g = {}
 g.preresolve_index = {}
 g.postresolve_index = {}
 g.preresolve_functions = {}
@@ -17,7 +17,7 @@ else
 		pdnslog("Loaded Option (".. tostring(k) .."): "..tostring(v), pdns.loglevels.Debug)
 		g.options[k] = v
 	end
-	pdnslog("Loaded ".. f.table_len(g.options_overrides) .." overrides", pdns.loglevels.Notice)
+	pdnslog("Loaded ".. f.table_len(g.options_overrides) .." overriAdes", pdns.loglevels.Notice)
 end
 
 require("local-domains")

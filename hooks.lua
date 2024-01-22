@@ -125,6 +125,7 @@ else
 	for k, v in pairs(g.options_overrides) do
 		g.options[k] = v
 	end
+	pdnslog("Loaded".. table_len(g.options_overrides) .."overrides", pdns.loglevels.Notice)
 end
 
 require("local-domains")

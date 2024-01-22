@@ -16,23 +16,20 @@ local s_tests={
 	s_test_wildcard
 }
 
-function isModuleAvailable(name)
-	if package.loaded[name] then
-		return true
-	else
-		for _, searcher in ipairs(package.searchers or package.loaders) do
-			local loader = searcher(name)
-			if type(loader) == 'function' then
-				package.preload[name] = loader
-				return true
-			end
-		end
-		return false
-	end
+local function script_path()
+	local str = debug.getinfo(2, "S").source:sub(2)
+	return str:match("(.*/)") or "."
 end
-if isModuleAvailable("rex_pcre") then
+
+g = {}
+f = require('functions')
+g.pdns_scripts_path = script_path()
+g.options = require('defaults')
+g.options_overrides = require('overrides-handler')
+package.path = package.path .. ";"..g.pdns_scripts_path.."/?.lua"
+if f.isModuleAvailable("rex_pcre") then
 	re = require"rex_pcre"
-elseif isModuleAvailable("rex_pcre2") then
+elseif f.isModuleAvailable("rex_pcre2") then
 	re = require"rex_pcre2"
 else
 	error("pdns-recursor-scripts malware-filter.lua requires rex_pcre or rex_pcre2 to be installed")

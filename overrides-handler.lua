@@ -23,8 +23,10 @@ local conf_files_l = table_len(conf_files)
 for index, lua_file in ipairs(conf_files) do
 	pdnslog("Loading config file: " .. lua_file, pdns.loglevels.Notice)
 	local subset = require(lua_file)
-	for k, v in pairs(subset) do
-		options_overrides[k] = v
+	if subset then
+		for k, v in pairs(subset) do
+			options_overrides[k] = v
+		end
 	end
 
 	if index >= conf_files_l then

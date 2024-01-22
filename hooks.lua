@@ -119,6 +119,9 @@ end
 
 g.options = require('defaults')
 g.options_overrides = require('overrides-handler')
+if not g.options_overrides then
+	pdnslog("Could not import hooks.lua overrides correctly", pdns.loglevels.Error)
+end
 for k, v in pairs(g.options_overrides) do
 	g.options[k] = v
 end

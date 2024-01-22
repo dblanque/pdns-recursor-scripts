@@ -60,11 +60,11 @@ end
 
 local function preresolve_regex(dq)
 	-- check blocklist
-	if not local_domain_overrides:check(dq.qname) then 
-		pdnslog("loadDSFile(): Ignoring REGEX Pre-resolve for "..tostring(dq.qname), pdns.loglevels.Debug)
+	local qname = f.qname_remove_trailing_dot(dq)
+	if not local_domain_overrides:check(qname) then 
+		pdnslog("loadDSFile(): Ignoring REGEX Pre-resolve for "..tostring(qname), pdns.loglevels.Debug)
 		return false
 	end
-	local qname = f.qname_remove_trailing_dot(dq)
 	local overridden = false
 	for key, value in pairs(g.options.regex_map) do
 		if not re.match(qname, key) then goto continue end

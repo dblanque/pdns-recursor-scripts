@@ -123,6 +123,7 @@ if not g.options_overrides then
 	pdnslog("Could not import overrides correctly (or there are none).", pdns.loglevels.Error)
 else
 	for k, v in pairs(g.options_overrides) do
+		pdnslog("Loaded Option (".. tostring(k) .."): "..tostring(v), pdns.loglevels.Debug)
 		g.options[k] = v
 	end
 	pdnslog("Loaded ".. table_len(g.options_overrides) .." overrides", pdns.loglevels.Notice)

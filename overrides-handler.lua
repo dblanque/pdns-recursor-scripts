@@ -22,9 +22,11 @@ end
 
 local conf_files = get_lua_modules_in_conf(conf_d_path, false)
 for index, lua_file in ipairs(conf_files) do
+	pdnslog("Including config file: "..lua_file, pdns.loglevels.Notice)
 	local params = require(lua_file)
 	for key, value in pairs(params) do
 		options_overrides[key] = value
 	end
 end
+
 return options_overrides

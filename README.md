@@ -51,6 +51,7 @@ You can override NS Servers for your local zones, as well as standard record typ
 such as CNAME, A, and AAAA, for example.
 
 ```lua
+-- /etc/powerdns/pdns-recursor-scripts/conf.d/local-resolve.lua
 return {
         internal_reverse_proxy_v4 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
         internal_reverse_proxy_v6 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
@@ -86,6 +87,7 @@ For Blocklists and some Malware Filtering DNS you may use the following
 options in the `/etc/powerdns/pdns-recursor-scripts/conf.d/malware-filter.lua`.
 
 ```lua
+-- /etc/powerdns/pdns-recursor-scripts/conf.d/malware-filter.lua
 return {
 	use_dnsbl = true, -- If you want to preresolve with DNSBL files (.list|.txt) in the dnsbl.d directory
 	use_ipbl = true, -- If you want to postresolve with IPBL files (.list|.txt) in the ipbl.d directory

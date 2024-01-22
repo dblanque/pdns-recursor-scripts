@@ -1,3 +1,4 @@
 ipbl.d/**
 dnsbl.d/**
 conf.d/**
+!conf.d/example.lua

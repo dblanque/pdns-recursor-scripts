@@ -21,7 +21,7 @@ end
 local conf_files = get_lua_modules_in_conf(conf_d_path, true)
 local conf_files_l = table_len(conf_files)
 
-for index, lua_file in ipairs() do
+for index, lua_file in ipairs(conf_files) do
 	pdnslog("Loading config file: " .. lua_file, pdns.loglevels.Notice)
 	dofile(filename)
 

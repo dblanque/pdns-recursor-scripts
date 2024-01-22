@@ -20,8 +20,9 @@ end
 
 for index, lua_file in ipairs(get_lua_modules_in_conf(conf_d_path, false)) do
 	pdnslog("Loading config file: " .. lua_file, pdns.loglevels.Notice)
-	local new_set = require(lua_file)
-	if new_set then options_overrides = new_set end
+	for k, v in pairs(require(lua_file)) do
+		options_overrides[k] = v
+	end
 end
 
 return options_overrides

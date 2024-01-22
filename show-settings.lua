@@ -4,6 +4,11 @@ function script_path()
 	return str:match("(.*/)") or "."
 end
 
+local function pdnslog(msg, loglevel)
+	-- Stub function
+	print(msg)
+end
+
 g = {}
 f = require('functions')
 g.pdns_scripts_path = script_path()

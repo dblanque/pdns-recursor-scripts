@@ -118,6 +118,7 @@ function fileExists(file)
 end
 
 g.options = require('defaults')
+dofile(g.pdns_scripts_path..'/overrides-handler.lua')
 if not g.options_overrides then
 	pdnslog("Could not import overrides correctly", pdns.loglevels.Error)
 else

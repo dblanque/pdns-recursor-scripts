@@ -13,7 +13,7 @@ local function get_lua_modules_in_conf(search_dir, fullpath)
 		if fullpath then
 			table.insert(files, conf_d_path .. "/" .. dir)
 		else
-			table.insert(files, string.gsub(dir, '%.lua', '')[1])
+			table.insert(files, tostring(string.gsub(dir, '%.lua', '')))
 		end
 		::continue::
 	end

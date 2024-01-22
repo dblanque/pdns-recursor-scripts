@@ -9,7 +9,7 @@ local function get_lua_modules_in_conf(search_dir)
 	local files = {}
 	for dir in io.popen("ls -pa " .. search_dir .. " | grep -v /|grep -E \"*(.lua)\""):lines() 
 	do
-		table.insert(files, string.gsub(dir, '%.lua', ''))
+		table.insert(files, string.gsub(dir, '%.lua', '')[0])
 	end
 	return files
 end

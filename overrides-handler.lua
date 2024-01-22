@@ -2,6 +2,7 @@
 -- Add your overrides into the conf.d directory instead 
 -- (you may copy and options.lua there and modify what you want)
 package.path = package.path .. ";"..g.pdns_scripts_path.."/conf.d/?.lua"
+local options_overrides = {}
 
 local function get_lua_modules_in_conf(search_dir)
 	local files = {}
@@ -16,3 +17,5 @@ for index, lua_file in ipairs(get_lua_modules_in_conf(g.pdns_scripts_path .. '/c
 	pdnslog("Loading config file: " .. lua_file, pdns.loglevels.Notice)
 	require(lua_file)
 end
+
+return options_overrides

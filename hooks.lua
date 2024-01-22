@@ -7,9 +7,9 @@ g.postresolve_functions = {}
 g.pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
 package.path = package.path .. ";"..g.pdns_scripts_path.."/?.lua"
 
-g.options = require 'options'
-local options_overrides = require 'overrides-handler'
-for k, v in pairs(options_overrides) do
+g.options = require('defaults')
+g.options_overrides = require('overrides-handler')
+for k, v in pairs(g.options_overrides) do
 	g.options[k] = v
 end
 

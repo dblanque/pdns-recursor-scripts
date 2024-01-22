@@ -31,5 +31,4 @@ for index, lua_file in ipairs(conf_files) do
 	end
 end
 
-pdnslog(tostring(g.dnsbl_whitelist),pdns.loglevels.Notice)
 return options_overrides

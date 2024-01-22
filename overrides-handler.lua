@@ -27,7 +27,7 @@ for index, lua_file in ipairs(conf_files) do
 	end
 	local params = require(lua_file)
 	for key, value in pairs(params) do
-		options_overrides[key] = value
+		options_overrides[key] = params[key]
 	end
 end
 

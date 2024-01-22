@@ -16,7 +16,8 @@ local options = {
 
 	-- Escape dots with double backslash \\.
 	regex_map = {}, -- Format: { ["*.example.com"]= {TYPE:"A", {"value1","value2"  (...) }, TTL:300, REPLACE_ANY:false} }
-	default_ttl = 3600
+	default_ttl = 3600,
+	dnsbl_whitelist = {}
 }
 
 return options

@@ -7,12 +7,6 @@ g.postresolve_functions = {}
 g.pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
 package.path = package.path .. ";"..g.pdns_scripts_path.."/?.lua"
 
-g.options = require('defaults')
-g.options_overrides = require('overrides-handler')
-for k, v in pairs(g.options_overrides) do
-	g.options[k] = v
-end
-
 -- Required for load-order based execution
 function addResolveFunction(mode, f_name, f)
 	local t_i
@@ -121,6 +115,12 @@ function fileExists(file)
 		f:close()
 	end
 	return f ~= nil
+end
+
+g.options = require('defaults')
+g.options_overrides = require('overrides-handler')
+for k, v in pairs(g.options_overrides) do
+	g.options[k] = v
 end
 
 require("local-domains")

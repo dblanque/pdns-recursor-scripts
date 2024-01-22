@@ -25,4 +25,5 @@ for index, lua_file in ipairs(get_lua_modules_in_conf(conf_d_path, false)) do
 	end
 end
 
+pdnslog("Table Length: "..table_len(options_overrides), pdns.loglevels.Notice)
 return options_overrides

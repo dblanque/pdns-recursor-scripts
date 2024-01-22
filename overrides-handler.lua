@@ -3,7 +3,7 @@
 -- (you may copy and options.lua there and modify what you want)
 local conf_d_path = g.pdns_scripts_path .. '/conf.d'
 local options_overrides = {}
--- package.path = package.path .. ";".. conf_d_path .. "/?.lua"
+package.path = package.path .. ";".. conf_d_path .. "/?.lua"
 
 local function get_lua_modules_in_conf(search_dir, fullpath)
 	local files = {}

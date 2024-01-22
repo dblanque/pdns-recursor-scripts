@@ -120,7 +120,7 @@ end
 g.options = require('defaults')
 dofile(g.pdns_scripts_path..'/overrides-handler.lua')
 if not g.options_overrides then
-	pdnslog("Could not import overrides correctly", pdns.loglevels.Error)
+	pdnslog("Could not import overrides correctly (or there are none).", pdns.loglevels.Error)
 else
 	for k, v in pairs(g.options_overrides) do
 		g.options[k] = v

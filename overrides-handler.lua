@@ -14,5 +14,8 @@ end
 
 for index, lua_file in ipairs(get_lua_modules_in_conf(g.pdns_scripts_path .. '/conf.d')) do
 	pdnslog("Loading config file: " .. lua_file, pdns.loglevels.Notice)
-	require(lua_file)
+	local options_overrides = require(lua_file)
+	if options_overrides then
+		return options_overrides
+	end
 end

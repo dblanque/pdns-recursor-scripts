@@ -1,6 +1,7 @@
 -- Do not modify this file, it's maintained by the repo.
 -- Add your overrides into the conf.d directory instead 
 -- (you may copy and paste this file or options.lua there and modify what you want)
+package.path = package.path .. ";"..g.pdns_scripts_path.."/conf.d/?.lua"
 local options_overrides = {
 }
 

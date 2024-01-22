@@ -125,7 +125,7 @@ else
 	for k, v in pairs(g.options_overrides) do
 		g.options[k] = v
 	end
-	pdnslog("Loaded".. table_len(g.options_overrides) .."overrides", pdns.loglevels.Notice)
+	pdnslog("Loaded ".. table_len(g.options_overrides) .." overrides", pdns.loglevels.Notice)
 end
 
 require("local-domains")
@@ -134,10 +134,10 @@ require("malware-filter")
 pdnslog("preresolve function table contains "..table_len(g.preresolve_functions).." entries.", pdns.loglevels.Notice)
 pdnslog("postresolve function table contains "..table_len(g.postresolve_functions).." entries.", pdns.loglevels.Notice)
 for i, k in ipairs(g.preresolve_index) do
-	pdnslog(k.." preresolve function loaded.", pdns.loglevels.Notice)
+	pdnslog(k.." preresolve function loaded.", pdns.loglevels.Debug)
 end
 for i, k in ipairs(g.postresolve_index) do
-	pdnslog(k.." postresolve function loaded.", pdns.loglevels.Notice)
+	pdnslog(k.." postresolve function loaded.", pdns.loglevels.Debug)
 end
 
 function preresolve(dq)

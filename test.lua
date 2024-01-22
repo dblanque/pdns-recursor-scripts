@@ -16,8 +16,6 @@ local s_tests={
 	s_test_wildcard
 }
 
-print(string.gsub('pepe.lua','%.lua',''))
-
 function isModuleAvailable(name)
 	if package.loaded[name] then
 		return true

@@ -23,8 +23,8 @@ end
 require("local-domains")
 require("malware-filter")
 
-pdnslog("preresolve function table contains ".. f.table_len(g.preresolve_functions) .. " entries.", pdns.loglevels.Notice)
-pdnslog("postresolve function table contains ".. f.table_len(g.postresolve_functions) .. " entries.", pdns.loglevels.Notice)
+pdnslog("preresolve function table contains " .. f.table_len(g.preresolve_functions) .. " entries.", pdns.loglevels.Notice)
+pdnslog("postresolve function table contains " .. f.table_len(g.postresolve_functions) .. " entries.", pdns.loglevels.Notice)
 for i, k in ipairs(g.preresolve_index) do
 	pdnslog(k.." preresolve function loaded.", pdns.loglevels.Debug)
 end

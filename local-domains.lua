@@ -50,6 +50,7 @@ local function preresolve_override(dq)
 			local dq_ttl = dq_override[3] or g.options.default_ttl
 			for i, v in ipairs(dq_values) do
 				dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
+				-- If it's a CNAME Replacement, only allow one value.
 				if pdns[dq_type] == pdns.CNAME then
 					dq.followupFunction="followCNAMERecords"
 					break
@@ -82,6 +83,7 @@ local function preresolve_regex(dq)
 		local dq_ttl = dq_override[3] or g.options.default_ttl
 		for i, v in ipairs(dq_values) do
 			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
+			-- If it's a CNAME Replacement, only allow one value.
 			if pdns[dq_type] == pdns.CNAME then
 				dq.followupFunction="followCNAMERecords"
 				break

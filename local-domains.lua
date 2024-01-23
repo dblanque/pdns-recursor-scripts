@@ -56,7 +56,7 @@ local function preresolve_override(dq)
 		end
 	end
 	if overridden and dq.qtype == pdns.CNAME then
-		dq.followCNAMERecords()
+		dq.followupFunction="followCNAMERecords"
 	end
 	return overridden
 end
@@ -88,7 +88,7 @@ local function preresolve_regex(dq)
 		::continue::
 	end
 	if overridden and dq.qtype == pdns.CNAME then
-		dq.followCNAMERecords()
+		dq.followupFunction="followCNAMERecords"
 	end
 	return overridden
 end

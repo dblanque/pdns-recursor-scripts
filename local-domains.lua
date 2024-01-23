@@ -55,6 +55,9 @@ local function preresolve_override(dq)
 			::continue::
 		end
 	end
+	if overridden and dq.qtype == pdns.CNAME then
+		dq.followCNAMERecords()
+	end
 	return overridden
 end
 
@@ -83,6 +86,9 @@ local function preresolve_regex(dq)
 		pdnslog("loadDSFile(): REGEX Overridden Result: "..tostring(overridden), pdns.loglevels.Debug)
 		if not overridden then overridden = true end
 		::continue::
+	end
+	if overridden and dq.qtype == pdns.CNAME then
+		dq.followCNAMERecords()
 	end
 	return overridden
 end

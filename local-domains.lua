@@ -50,13 +50,14 @@ local function preresolve_override(dq)
 			local dq_ttl = dq_override[3] or g.options.default_ttl
 			for i, v in ipairs(dq_values) do
 				dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
+				if pdns[dq_type] == pdns.CNAME then
+					dq.followupFunction="followCNAMERecords"
+					break
+				end
 			end
 			if not overridden then overridden = true end
 			::continue::
 		end
-	end
-	if overridden and dq.qtype == pdns.CNAME then
-		dq.followupFunction="followCNAMERecords"
 	end
 	return overridden
 end
@@ -81,14 +82,15 @@ local function preresolve_regex(dq)
 		local dq_ttl = dq_override[3] or g.options.default_ttl
 		for i, v in ipairs(dq_values) do
 			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
+			if pdns[dq_type] == pdns.CNAME then
+				dq.followupFunction="followCNAMERecords"
+				break
+			end
 		end
 		
 		pdnslog("loadDSFile(): REGEX Overridden Result: "..tostring(overridden), pdns.loglevels.Debug)
 		if not overridden then overridden = true end
 		::continue::
-	end
-	if overridden and dq.qtype == pdns.CNAME then
-		dq.followupFunction="followCNAMERecords"
 	end
 	return overridden
 end

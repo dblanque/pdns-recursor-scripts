@@ -35,7 +35,7 @@ local function valid_type_replace(dq_type, replace_type)
 end
 
 local function preresolve_override(dq)
-	-- check blocklist
+	-- do not pre-resolve if not in our domains
 	if not local_domain_overrides:check(dq.qname) then return false end
 	local qname = f.qname_remove_trailing_dot(dq)
 	local overridden = false
@@ -59,7 +59,7 @@ local function preresolve_override(dq)
 end
 
 local function preresolve_regex(dq)
-	-- check blocklist
+	-- do not pre-resolve if not in our domains
 	if not local_domain_overrides:check(dq.qname) then 
 		pdnslog("loadDSFile(): Ignoring REGEX Pre-resolve for "..tostring(dq.qname), pdns.loglevels.Debug)
 		return false
@@ -88,7 +88,7 @@ local function preresolve_regex(dq)
 end
 
 local function preresolve_ns(dq)
-	-- check blocklist
+	-- do not pre-resolve if not in our domains
 	if not local_domain_overrides:check(dq.qname) then return false end
 	if not g.options.private_zones_ns_override then return false end
 
@@ -143,7 +143,7 @@ end
 
 -- this function is hooked before resolving starts
 local function preresolve_lo(dq)
-	-- check blocklist
+	-- do not pre-resolve if not in our domains
 	if not local_domain_overrides:check(dq.qname) then
 		return false
 	end

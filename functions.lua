@@ -105,22 +105,6 @@ function f.trim_hosts_comment(line)
 	end
 end
 
-function f.pcre_to_domain(regex)
-	-- Remove start/end anchors (^ and $)
-	local domain = regex:gsub("%^", ""):gsub("%$", "")
-
-	-- Handle escaped dots (\.) and other escaped chars
-	domain = domain:gsub("\\.", function(x) return x:sub(2) end)
-
-	-- Remove regex alternations (|) and groups (())
-	domain = domain:gsub("[%(%)|]", "")
-
-	-- Trim leading/trailing dots (if any)
-	domain = domain:gsub("^%.+", ""):gsub("%.+$", "")
-
-	return domain
-end
-
 -- src: https://stackoverflow.com/questions/1426954/split-string-in-lua
 function f.string_split(inputstr, sep)
 	if sep == nil then

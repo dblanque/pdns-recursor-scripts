@@ -37,17 +37,23 @@ def assert_ip(qnames, ip):
 	return True
 
 DNS_IP = "10.10.10.101"
-CASES = (
+for q_case in (
 	# Domain, Type, Should be sinkholed
 	("google.com", "A", True),
 	("000free.us", "A", False),
 	("ad-assets.futurecdn.net", "A", False),
-)
-
-for q_case in CASES:
+):
 	domain, q_type, sinkhole = q_case
 	sinkholed = assert_ip(dns_lookup(domain, q_type, DNS_IP), "0.0.0.0")
 	msg = "was resolved"
 	if sinkholed:
 		msg = "was sinkholed"
 	print(f"{domain} {msg}.")
+
+for q_case in (
+	("localhost", "A", "127.0.0.1",),
+):
+	domain, q_type, expected = q_case
+	lookup = dns_lookup(domain, q_type, DNS_IP)
+	if not assert_ip(lookup, expected):
+		print(f"Bad lookup for {domain} ({str(lookup)})")

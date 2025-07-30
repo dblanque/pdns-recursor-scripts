@@ -2,8 +2,8 @@ local f = {}
 
 -- Required for load-order based execution
 function f.addResolveFunction(mode, f_name, f)
-	local t_i
-	local t_f
+	local t_i -- Index
+	local t_f -- Function
 	if mode == "pre" then
 		t_i = "preresolve_index"
 		t_f = "preresolve_functions"
@@ -30,6 +30,17 @@ function f.isModuleAvailable(name)
 		end
 		return false
 	end
+end
+
+function f.extract_hosts_domain(str)
+    -- Pattern explanation:
+    -- ^                - Start of string
+    -- [%d%.:]+         - Match 1+ digits, dots, or colons (for both IPv4 and IPv6)
+    -- %s+              - Match 1+ whitespace characters
+    -- (.*)             - Capture the rest of the string (the domain)
+    -- $                - End of string
+    local domain = str:match("^[%d%.:]+%s+(.*)$")
+    return domain or str  -- Return original string if no match
 end
 
 function f.empty_str(s)

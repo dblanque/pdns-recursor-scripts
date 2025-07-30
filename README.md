@@ -94,9 +94,9 @@ options in the `/etc/powerdns/pdns-recursor-scripts/conf.d/malware-filter.lua`.
 return {
 	use_dnsbl = true, -- If you want to preresolve with DNSBL files (.list|.txt) in the dnsbl.d directory
 	use_ipbl = true, -- If you want to postresolve with IPBL files (.list|.txt) in the ipbl.d directory
-        dnsbl_whitelist = {}
 }
 ```
+To whitelist domains create a `/etc/powerdns/pdns-recursor-scripts/conf.d/dnsbl_whitelist.txt` file with one domain per line.
 
 # RE-LOADING DNSBL/IPBL
 

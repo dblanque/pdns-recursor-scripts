@@ -83,17 +83,26 @@ function f.table_len(T)
 
 -- This function uses native LUA Regex, not PCRE2
 function f.is_comment(v)
-	if not v then return false end
-	local p_list = {
-		"^ *#(.*)$",
-		"^ *%-%-(.*)$",
-		"^ *//(.*)$",
-		"^ *!(.*)$"
-	}
-	for key, pattern in pairs(p_list) do
-		if string.match(v, pattern) then return true end
-	end
-	return false
+    if not v then return false end
+    local p_list = {
+        "^%s*#",      -- Matches "#" with optional leading spaces
+        "^%s*%-%-",   -- Matches "--" with optional leading spaces
+        "^%s*//",     -- Matches "//" with optional leading spaces
+        "^%s*!"       -- Matches "!" with optional leading spaces
+    }
+    for _, pattern in ipairs(p_list) do
+        if v:match(pattern) then return true end
+    end
+    return false
+end
+
+function f.trim_hosts_comment(line)
+    local comment_index = line:find("#")
+    if comment_index then
+        return line:sub(1, comment_index - 1):gsub("%s+$", "")
+    else
+        return line
+    end
 end
 
 -- src: https://stackoverflow.com/questions/1426954/split-string-in-lua

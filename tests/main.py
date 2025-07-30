@@ -44,6 +44,12 @@ for q_case in (
 	("whitelisted.example.com", "A", True),
 	("example.org", "A", True),
 	("sub.example.org", "A", False),
+	("yahoo.com", "A", False),
+	("sub.yahoo.com", "A", False),
+	("bing.com", "A", False),
+	("sub.bing.com", "A", False),
+	("microsoft.com", "A", False),
+	("sub.microsoft.com", "A", False),
 ):
 	domain, q_type, expects_resolve = q_case
 	lookup = dns_lookup(domain, q_type, DNS_IP)

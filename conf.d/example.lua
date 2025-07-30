@@ -2,5 +2,37 @@
 -- You can load multiple config files, repeated options will be replaced by the last file.
 -- Recommended names: overrides.lua || settings.lua || conf_dnsbl.lua || conf_local.lua
 return {
-	-- Put your options in here
+	-- Local Domain Override Options
+	internal_reverse_proxy_v4 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
+	internal_reverse_proxy_v6 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
+	use_local_forwarder = true,
+	private_zones_ns_override_map_only = true,
+	private_zones_ns_override_map = {
+			['example.com'] = {'ns1','ns2','dns','dot','doh'}
+	},
+	private_zones_ns_override = true,
+	override_map = {
+			['something.example.com']={
+					"A",
+					{"127.0.0.1", "127.0.0.2"}
+			}
+	},
+	regex_map = {
+			['^(mail|smtp|imap|smtps|smtp)\\..*$']={
+					"CNAME",
+					{"mailserver.example.com"}
+			},
+			['^(dns|dot|doh|ns[0-9])\\..*$']={
+					"A",
+					{"127.0.0.1"}
+			}
+	},
+	default_ttl = 900,
+
+	-- Malware Filter Options
+	use_dnsbl = true, -- If you want to preresolve with DNSBL files (.list|.txt) in the dnsbl.d directory
+	use_ipbl = true, -- If you want to postresolve with IPBL files (.list|.txt) in the ipbl.d directory
+	dnsbl_whitelist = {
+		"example.com"
+	},
 }

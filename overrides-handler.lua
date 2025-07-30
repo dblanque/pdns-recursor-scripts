@@ -7,7 +7,7 @@ package.path = package.path .. ";"..conf_d_path.."/?.lua"
 
 local function get_lua_modules_in_conf(search_dir, fullpath)
 	local files = {}
-	for dir in io.popen("ls -pa " .. search_dir .. " | grep -v /|grep -E \".*(.lua)\""):lines() 
+	for dir in io.popen("ls -pa " .. search_dir .. " | grep -v /|grep -E \".*(.lua)$\""):lines() 
 	do
 		if dir == 'example.lua' then goto continue end
 		if fullpath then

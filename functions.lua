@@ -33,14 +33,14 @@ function f.isModuleAvailable(name)
 end
 
 function f.extract_hosts_domain(str)
-    -- Pattern explanation:
-    -- ^                - Start of string
-    -- [%d%.:]+         - Match 1+ digits, dots, or colons (for both IPv4 and IPv6)
-    -- %s+              - Match 1+ whitespace characters
-    -- (.*)             - Capture the rest of the string (the domain)
-    -- $                - End of string
-    local domain = str:match("^[%d%.:]+%s+(.*)$")
-    return domain or str  -- Return original string if no match
+	-- Pattern explanation:
+	-- ^                - Start of string
+	-- [%d%.:]+         - Match 1+ digits, dots, or colons (for both IPv4 and IPv6)
+	-- %s+              - Match 1+ whitespace characters
+	-- (.*)             - Capture the rest of the string (the domain)
+	-- $                - End of string
+	local domain = str:match("^[%d%.:]+%s+(.*)$")
+	return domain or str  -- Return original string if no match
 end
 
 function f.empty_str(s)
@@ -83,26 +83,42 @@ function f.table_len(T)
 
 -- This function uses native LUA Regex, not PCRE2
 function f.is_comment(v)
-    if not v then return false end
-    local p_list = {
-        "^%s*#",      -- Matches "#" with optional leading spaces
-        "^%s*%-%-",   -- Matches "--" with optional leading spaces
-        "^%s*//",     -- Matches "//" with optional leading spaces
-        "^%s*!"       -- Matches "!" with optional leading spaces
-    }
-    for _, pattern in ipairs(p_list) do
-        if v:match(pattern) then return true end
-    end
-    return false
+	if not v then return false end
+	local p_list = {
+		"^%s*#",      -- Matches "#" with optional leading spaces
+		"^%s*%-%-",   -- Matches "--" with optional leading spaces
+		"^%s*//",     -- Matches "//" with optional leading spaces
+		"^%s*!"       -- Matches "!" with optional leading spaces
+	}
+	for _, pattern in ipairs(p_list) do
+		if v:match(pattern) then return true end
+	end
+	return false
 end
 
 function f.trim_hosts_comment(line)
-    local comment_index = line:find("#")
-    if comment_index then
-        return line:sub(1, comment_index - 1):gsub("%s+$", "")
-    else
-        return line
-    end
+	local comment_index = line:find("#")
+	if comment_index then
+		return line:sub(1, comment_index - 1):gsub("%s+$", "")
+	else
+		return line
+	end
+end
+
+function f.pcre_to_domain(regex)
+	-- Remove start/end anchors (^ and $)
+	local domain = regex:gsub("%^", ""):gsub("%$", "")
+
+	-- Handle escaped dots (\.) and other escaped chars
+	domain = domain:gsub("\\.", function(x) return x:sub(2) end)
+
+	-- Remove regex alternations (|) and groups (())
+	domain = domain:gsub("[%(%)|]", "")
+
+	-- Trim leading/trailing dots (if any)
+	domain = domain:gsub("^%.+", ""):gsub("%.+$", "")
+
+	return domain
 end
 
 -- src: https://stackoverflow.com/questions/1426954/split-string-in-lua

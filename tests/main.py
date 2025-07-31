@@ -50,6 +50,9 @@ for q_case in (
 	("sub.bing.com", "A", False),
 	("microsoft.com", "A", False),
 	("sub.microsoft.com", "A", False),
+	("google-analytics.com", "A", True),
+	("srienlinea.sri.gob.ec", "A", True),
+	("pichincha.com", "A", True),
 ):
 	domain, q_type, expects_resolve = q_case
 	lookup = dns_lookup(domain, q_type, DNS_IP)

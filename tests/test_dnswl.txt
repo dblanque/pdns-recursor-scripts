@@ -1,0 +1,13 @@
+# Skip this comment
+#Skip this comment
+-- Skip this comment
+--Skip this comment
+// Skip this comment
+//Skip this comment
+! Skip this comment
+!Skip this comment
+
+whitelisted.example.com
+google-analytics.com
+srienlinea.sri.gob.ec
+www.pichincha.com

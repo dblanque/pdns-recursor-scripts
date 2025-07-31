@@ -1,3 +1,12 @@
+# Skip this comment
+#Skip this comment
+-- Skip this comment
+--Skip this comment
+// Skip this comment
+//Skip this comment
+! Skip this comment
+!Skip this comment
+
 example.com
 sub.example.org
 *.yahoo.com

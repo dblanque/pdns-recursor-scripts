@@ -126,9 +126,9 @@ def main():
 					colorize(bcolors.L_RED, "FAILED"),
 					domain,
 					str(lookup),
-					colorize(bcolors.L_RED, "Should be sinkholed")
-					if expects_resolve else
 					colorize(bcolors.L_RED, "Should resolve")
+					if expects_resolve else
+					colorize(bcolors.L_RED, "Should be sinkholed")
 				)
 			)
 		else:
@@ -137,9 +137,9 @@ def main():
 					colorize(bcolors.L_GREEN, "PASSED"),
 					domain,
 					str(lookup),
-					colorize(bcolors.L_BLUE, "Should be sinkholed")
-					if expects_resolve else
 					colorize(bcolors.L_BLUE, "Should resolve")
+					if expects_resolve else
+					colorize(bcolors.L_BLUE, "Should be sinkholed")
 				)
 			)
 

@@ -164,6 +164,7 @@ def main():
 				as_rdata=True
 			)
 		except dns.resolver.NXDOMAIN:
+			lookup = "NXDOMAIN"
 			raised_nx = True
 
 		if not raised_nx:

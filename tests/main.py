@@ -92,6 +92,7 @@ for q_case in (
 	("yandex.ru",					"A", False),
 	("regex101.com",				"A", False),
 
+	# Blocked but whitelisted
 	("google-analytics.com",		"A", True),
 	("srienlinea.sri.gob.ec",		"A", True),
 	("pichincha.com",				"A", True),

@@ -148,10 +148,10 @@ def main():
 		("ip6-loopback", "AAAA"),
 		("ip6-localnet", "AAAA"),
 		("localhost", "AAAA"),
-		("ip6-mcastprefix", "A"),
-		("ip6-allnodes", "A"),
-		("ip6-allrouters", "A"),
-		("ip6-allhosts", "A"),
+		("ip6-mcastprefix", "AAAA"),
+		("ip6-allnodes", "AAAA"),
+		("ip6-allrouters", "AAAA"),
+		("ip6-allhosts", "AAAA"),
 	):
 		domain, q_type = q_case
 		raised_nx = False

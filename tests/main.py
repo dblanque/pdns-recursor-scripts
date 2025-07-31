@@ -1,6 +1,4 @@
 import dns.resolver
-from dns.rdata import Rdata
-from typing import Union
 from enum import Enum
 import sys
 

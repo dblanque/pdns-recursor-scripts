@@ -38,14 +38,22 @@ git clone https://github.com/dblanque/pdns-recursor-scripts
 ```
 
 ```conf
-# /etc/powerdns/recursor.conf
+# /etc/powerdns/recursor.conf (Legacy)
 lua-dns-script=/etc/powerdns/pdns-recursor-scripts/hooks.lua
 ```
 
-## Local Domain Overriding
+```yaml
+# /etc/powerdns/recursor.conf (YAML)
+recursor:
+  lua_dns_script: /etc/powerdns/pdns-recursor-scripts/hooks.lua
+```
 
-For Split DNS (and to reduce the usage of NAT Reflection) you may use the following
-options in the `/etc/powerdns/pdns-recursor-scripts/conf.d/local-resolve.lua` directory.
+## Local Domain Overriding (For Split-DNS)
+
+For Split DNS (and to reduce the usage of NAT Reflection) you may use the
+following options in the following files:
+* `/etc/powerdns/pdns-recursor-scripts/conf.d/settings.lua`
+* `/etc/powerdns/pdns-recursor-scripts/conf.d/local-resolve.lua`
 
 Bear in mind you must also configure your internal domains in the `local-domains.list`
 file for this feature to work properly `(See local-domains-example.list)`.
@@ -84,10 +92,24 @@ return {
 }
 ```
 
-## Malware Filtering
+## Blocklist Filtering
 
 For Blocklists and some Malware Filtering DNS you may use the following
 options in the `/etc/powerdns/pdns-recursor-scripts/conf.d/malware-filter.lua`.
+
+### Supported Syntaxes
+* Adblock: ||example.com^
+* PCRE: Assumed if matches special regex chars and not Adblock Syntax
+* HOSTS: Entries starting with the following IPs will be ingested/blocked
+  * 0.0.0.0
+  * 127.0.0.1
+  * ::
+  * 2001:1::1
+* Standard: A normal TXT Domain list.
+
+### Whitelist
+
+To whitelist domains create a `/etc/powerdns/pdns-recursor-scripts/conf.d/dnsbl_whitelist.txt` file with one domain per line.
 
 ```lua
 -- /etc/powerdns/pdns-recursor-scripts/conf.d/malware-filter.lua
@@ -96,7 +118,6 @@ return {
 	use_ipbl = true, -- If you want to postresolve with IPBL files (.list|.txt) in the ipbl.d directory
 }
 ```
-To whitelist domains create a `/etc/powerdns/pdns-recursor-scripts/conf.d/dnsbl_whitelist.txt` file with one domain per line.
 
 # RE-LOADING DNSBL/IPBL
 

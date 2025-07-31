@@ -1,0 +1,14 @@
+example.com
+sub.example.org
+*.yahoo.com
+||bing.com^
+(\.|^)microsoft\.com$
+0.0.0.0 mozilla.org
+127.0.0.1 youtube.com
+2001:1::1 yandex.ru
+:: regex101.com
+
+# Test these domains
+google-analytics.com
+srienlinea.sri.gob.ec
+www.pichincha.com

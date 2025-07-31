@@ -95,6 +95,8 @@ def main():
 	for q_case in (
 		# Domain, Type, Should resolve
 		("google.com",					"A", True),
+		("github.com",					"A", True),
+		("gitlab.com",					"A", True),
 		("example.com",					"A", False),
 		("whitelisted.example.com",		"A", True),
 		("example.org",					"A", True),

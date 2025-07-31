@@ -122,18 +122,24 @@ def main():
 		sinkholed = assert_ip(lookup, "0.0.0.0")
 		if sinkholed is expects_resolve:
 			print(
-				"Test %s for %s (%s)" % (
+				"Test %s for %s (%s) - %s" % (
 					colorize(bcolors.L_RED, "FAILED"),
 					domain,
-					str(lookup)
+					str(lookup),
+					colorize(bcolors.L_RED, "Should be sinkholed")
+					if expects_resolve else
+					colorize(bcolors.L_RED, "Should resolve")
 				)
 			)
 		else:
 			print(
-				"Test %s for %s (%s)" % (
+				"Test %s for %s (%s) <- %s" % (
 					colorize(bcolors.L_GREEN, "PASSED"),
 					domain,
-					str(lookup)
+					str(lookup),
+					colorize(bcolors.L_BLUE, "Should be sinkholed")
+					if expects_resolve else
+					colorize(bcolors.L_BLUE, "Should resolve")
 				)
 			)
 

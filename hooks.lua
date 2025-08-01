@@ -5,25 +5,32 @@ g.postresolve_index = {}
 g.preresolve_functions = {}
 g.postresolve_functions = {}
 g.pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
+g.recursor_thread_id = getRecursorThreadId()
 package.path = package.path .. ";"..g.pdns_scripts_path.."/?.lua"
+
+function mainlog(msg, level)
+	if g.recursor_thread_id == 1 then
+		pdnslog(msg, level)
+	end
+end
 
 f = require('functions')
 g.options = require('defaults')
 g.options_overrides = require('overrides-handler')
 if not g.options_overrides then
-	pdnslog(
+	mainlog(
 		"Could not import overrides correctly (or there are none).",
 		pdns.loglevels.Error
 	)
 else
 	for k, v in pairs(g.options_overrides) do
-		pdnslog(
+		mainlog(
 			"Loaded Option (".. tostring(k) .."): "..tostring(v),
 			pdns.loglevels.Debug
 		)
 		g.options[k] = v
 	end
-	pdnslog(
+	mainlog(
 		string.format(
 			"Loaded %d overrides",
 			f.table_len(g.options_overrides)
@@ -35,14 +42,14 @@ end
 require("local-domains")
 require("malware-filter")
 
-pdnslog(
+mainlog(
 	string.format(
 		"preresolve function table contains %d entries.",
 		f.table_len(g.preresolve_functions)
 	),
 	pdns.loglevels.Notice
 )
-pdnslog(
+mainlog(
 	string.format(
 		"postresolve function table contains %d entries.",
 		f.table_len(g.postresolve_functions)
@@ -50,20 +57,20 @@ pdnslog(
 	pdns.loglevels.Notice
 )
 for i, k in ipairs(g.preresolve_index) do
-	pdnslog(k.." preresolve function added.", pdns.loglevels.Debug)
+	mainlog(k.." preresolve function added.", pdns.loglevels.Debug)
 end
 for i, k in ipairs(g.postresolve_index) do
-	pdnslog(k.." postresolve function added.", pdns.loglevels.Debug)
+	mainlog(k.." postresolve function added.", pdns.loglevels.Debug)
 end
 
 function preresolve(dq)
 	for index, f_name in ipairs(g.preresolve_index) do
 		local pre_r_f = g.preresolve_functions[f_name]
 		if not pre_r_f then
-			pdnslog("preresolve f() Function Index Mis-match: "..f_name, pdns.loglevels.Warning)
+			mainlog("preresolve f() Function Index Mis-match: "..f_name, pdns.loglevels.Warning)
 			goto continue
 		end
-		pdnslog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
+		mainlog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
 		local result = pre_r_f(dq)
 		if result == true then return result end
 		::continue::
@@ -75,13 +82,13 @@ function postresolve(dq)
 	for index, f_name in ipairs(g.postresolve_index) do
 		local post_r_f = g.postresolve_functions[f_name]
 		if not post_r_f then
-			pdnslog(
+			mainlog(
 				"postresolve f() Function Index Mis-match: " .. f_name,
 				pdns.loglevels.Warning
 			)
 			goto continue
 		end
-		pdnslog("postresolve f(): " .. f_name, pdns.loglevels.Debug)
+		mainlog("postresolve f(): " .. f_name, pdns.loglevels.Debug)
 		local result = post_r_f(dq)
 		if result == true then return result end
 		::continue::

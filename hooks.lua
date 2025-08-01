@@ -100,6 +100,10 @@ function postresolve(dq)
 end
 
 function maintenance(dq)
+	if #g.maintenance_index < 1 then
+		return
+	end
+
 	for index, f_name in ipairs(g.maintenance_index) do
 		local maintenance_r_f = g.maintenance_functions[f_name]
 		if not maintenance_r_f then
@@ -109,7 +113,7 @@ function maintenance(dq)
 			)
 			goto continue
 		end
-		mainlog("maintenance f(): " .. f_name, pdns.loglevels.Debug)
+		-- mainlog("maintenance f(): " .. f_name, pdns.loglevels.Debug)
 		local result = maintenance_r_f(dq)
 		if result == true then return result end
 		::continue::

@@ -5,7 +5,7 @@ if f.isModuleAvailable("rex_pcre") then
 elseif f.isModuleAvailable("rex_pcre2") then
 	re = require"rex_pcre2"
 else
-	pdnslog("pdns-recursor-scripts local-domains.lua requires rex_pcre or rex_pcre2 to be installed", pdns.loglevels.Error)
+	mainlog("pdns-recursor-scripts local-domains.lua requires rex_pcre or rex_pcre2 to be installed", pdns.loglevels.Error)
 	return false
 end
 
@@ -16,9 +16,9 @@ local function loadDSFile(filename, suffixMatchGroup, domainTable)
 			suffixMatchGroup:add(line)
 			table.insert(domainTable, line)
 		end
-		pdnslog("loadDSFile(): " .. filename .. " successfully loaded", pdns.loglevels.Notice)
+		mainlog("loadDSFile(): " .. filename .. " successfully loaded", pdns.loglevels.Notice)
 	else
-		pdnslog("loadDSFile(): could not open file " .. filename, pdns.loglevels.Warning)
+		mainlog("loadDSFile(): could not open file " .. filename, pdns.loglevels.Warning)
 	end
 end
 
@@ -175,7 +175,6 @@ end
 
 -- Add preresolve functions to table, ORDER MATTERS
 if g.options.use_local_forwarder then
-	
 	-- List of private domains
 	local_domain_overrides=newDS()
 	local_domain_overrides_t={}
@@ -187,11 +186,11 @@ if g.options.use_local_forwarder then
 		f.addResolveFunction("pre", "preresolve_regex", preresolve_regex)
 	end
 
-	-- pdnslog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
+	mainlog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
 	f.addResolveFunction("pre", "preresolve_lo", preresolve_lo)
 	if g.options.private_zones_ns_override then
 		f.addResolveFunction("pre", "preresolve_ns", preresolve_ns)
 	end
 else
-	pdnslog("Local Domain Forwarder Override not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)
+	mainlog("Local Domain Forwarder Override not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)
 end

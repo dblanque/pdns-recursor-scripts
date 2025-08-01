@@ -23,7 +23,7 @@ end
 local conf_files = get_lua_modules_in_conf(conf_d_path, false)
 for index, lua_file in ipairs(conf_files) do
 	if pdns then
-		pdnslog("Including config file: "..lua_file, pdns.loglevels.Notice)
+		mainlog("Including config file: "..lua_file, pdns.loglevels.Notice)
 	end
 	local params = require(lua_file)
 	for key, value in pairs(params) do

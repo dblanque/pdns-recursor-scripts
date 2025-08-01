@@ -27,7 +27,7 @@ else
 		string.format(
 			"Loaded %d overrides",
 			f.table_len(g.options_overrides)
-		)
+		),
 		pdns.loglevels.Notice
 	)
 end

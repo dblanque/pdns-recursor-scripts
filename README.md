@@ -1,5 +1,12 @@
 # Scripts for PowerDNS Split-DNS and Malware Filtering
 
+## Update 1.01
+* Whitelisting for DNSBL Domains has been moved to a separate file instead of the
+Lua config (See corresponding section below).
+* Fixes to syntax detection
+* Improvements to use Native PowerDNS DS object in all syntax modes except PCRE.
+* Improvements to comment detection regexes.
+
 This script-set was created to facilitate Malware Filtering and Split-DNS support on
 PowerDNS Recursor Services.
 
@@ -14,11 +21,19 @@ Zone Records through REGEX Patterns.
 Script Repository maintained by Dylan Blanqué. Created January 2024.
 
 ### Would you like to support me?
-<a href='https://ko-fi.com/E1E2YQ4TG' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+<a href='https://ko-fi.com/E1E2YQ4TG' target='_blank'>
+	<img
+		height='36'
+		style='border:0px;height:36px;'
+		src='https://storage.ko-fi.com/cdn/kofi2.png?v=3'
+		border='0'
+		alt='Buy Me a Coffee at ko-fi.com' />
+</a>
 
 # REQUIREMENTS
 
-You must have `lua-rex-pcre` or `lua-rex-pcre2` installed (Can be done with `apt` or `luarocks`).
+You must have `lua-rex-pcre` or `lua-rex-pcre2` installed (Can be done with
+`apt` or `luarocks`).
 
 E.g.:
 ```bash
@@ -109,13 +124,14 @@ options in the `/etc/powerdns/pdns-recursor-scripts/conf.d/malware-filter.lua`.
 
 ### Whitelist
 
-To whitelist domains create a `/etc/powerdns/pdns-recursor-scripts/conf.d/dnsbl_whitelist.txt` file with one domain per line.
+To whitelist domains create a `/etc/powerdns/pdns-recursor-scripts/conf.d/dnsbl_whitelist.txt`
+file with one domain per line.
 
 ```lua
 -- /etc/powerdns/pdns-recursor-scripts/conf.d/malware-filter.lua
 return {
-	use_dnsbl = true, -- If you want to preresolve with DNSBL files (.list|.txt) in the dnsbl.d directory
-	use_ipbl = true, -- If you want to postresolve with IPBL files (.list|.txt) in the ipbl.d directory
+	use_dnsbl = true, -- If you want to preresolve with DNSBL files (.list|.txt|.hosts) in the dnsbl.d directory
+	use_ipbl = true, -- If you want to postresolve with IPBL files (.list|.txt|.hosts) in the ipbl.d directory
 }
 ```
 
@@ -134,12 +150,6 @@ You may also add this onto a cronjob with the following format to reload every d
 ```
 
 # SUPPORTED
-
-## Supported Syntaxes
-* Adblock
-* Plain List
-* PCRE Regex
-* Wildcard
 
 ## IPBLs used for Testing
 

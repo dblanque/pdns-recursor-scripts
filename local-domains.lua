@@ -180,16 +180,16 @@ if g.options.use_local_forwarder then
 	local_domain_overrides_t={}
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
 	if g.options.override_map and f.table_len(g.options.override_map) >= 1 then
-		f.addResolveFunction("pre", "preresolve_override", preresolve_override)
+		f.addHookFunction("pre", "preresolve_override", preresolve_override)
 	end
 	if g.options.regex_map and f.table_len(g.options.regex_map) >= 1 then
-		f.addResolveFunction("pre", "preresolve_regex", preresolve_regex)
+		f.addHookFunction("pre", "preresolve_regex", preresolve_regex)
 	end
 
 	mainlog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
-	f.addResolveFunction("pre", "preresolve_lo", preresolve_lo)
+	f.addHookFunction("pre", "preresolve_lo", preresolve_lo)
 	if g.options.private_zones_ns_override then
-		f.addResolveFunction("pre", "preresolve_ns", preresolve_ns)
+		f.addHookFunction("pre", "preresolve_ns", preresolve_ns)
 	end
 else
 	mainlog("Local Domain Forwarder Override not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)

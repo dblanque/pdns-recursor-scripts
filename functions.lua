@@ -1,37 +1,5 @@
 local f = {}
 
--- Required for load-order based execution
-function f.addResolveFunction(mode, f_name, f)
-	local t_i -- Index
-	local t_f -- Function
-	if mode == "pre" then
-		t_i = "preresolve_index"
-		t_f = "preresolve_functions"
-	elseif mode == "post" then
-		t_i = "postresolve_index"
-		t_f = "postresolve_functions"
-	else
-		error("addResolveFunction(): mode param must be 'pre' or 'post'")
-	end
-	table.insert(g[t_i], f_name)
-	g[t_f][f_name] = f
-end
-
-function f.isModuleAvailable(name)
-	if package.loaded[name] then
-		return true
-	else
-		for _, searcher in ipairs(package.searchers or package.loaders) do
-			local loader = searcher(name)
-			if type(loader) == 'function' then
-				package.preload[name] = loader
-				return true
-			end
-		end
-		return false
-	end
-end
-
 function f.extract_hosts_domain(str)
 	-- Pattern explanation:
 	-- ^                - Start of string
@@ -131,6 +99,45 @@ function f.fileExists(file)
 		f:close()
 	end
 	return f ~= nil
+end
+
+function f.isModuleAvailable(name)
+	if package.loaded[name] then
+		return true
+	else
+		for _, searcher in ipairs(package.searchers or package.loaders) do
+			local loader = searcher(name)
+			if type(loader) == 'function' then
+				package.preload[name] = loader
+				return true
+			end
+		end
+		return false
+	end
+end
+
+-- Required for load-order based execution
+function f.addHookFunction(mode, f_name, f)
+	local t_i -- Index
+	local t_f -- Function
+	if mode == "pre" then
+		t_i = "preresolve_index"
+		t_f = "preresolve_functions"
+	elseif mode == "post" then
+		t_i = "postresolve_index"
+		t_f = "postresolve_functions"
+	elseif mode == "maintenance" then
+		t_i = "maintenance_index"
+		t_f = "maintenance_functions"
+	else
+		error("addHookFunction(): mode param must be either 'pre', 'post' or 'maintenance'")
+	end
+	if f.table_contains_key(g[t_f], f_name) then
+		return
+	end
+
+	table.insert(g[t_i], f_name)
+	g[t_f][f_name] = f
 end
 
 return f

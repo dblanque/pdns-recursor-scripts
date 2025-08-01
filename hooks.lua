@@ -1,11 +1,14 @@
 -- Set package path
 g = {}
+g.maintenance_index = {}
 g.preresolve_index = {}
 g.postresolve_index = {}
+g.maintenance_functions = {}
 g.preresolve_functions = {}
 g.postresolve_functions = {}
 g.pdns_scripts_path = "/etc/powerdns/pdns-recursor-scripts"
 g.recursor_thread_id = getRecursorThreadId()
+g.initialized_mf = false
 package.path = package.path .. ";"..g.pdns_scripts_path.."/?.lua"
 
 function mainlog(msg, level)
@@ -90,6 +93,24 @@ function postresolve(dq)
 		end
 		mainlog("postresolve f(): " .. f_name, pdns.loglevels.Debug)
 		local result = post_r_f(dq)
+		if result == true then return result end
+		::continue::
+	end
+	return false
+end
+
+function maintenance(dq)
+	for index, f_name in ipairs(g.maintenance_index) do
+		local maintenance_r_f = g.maintenance_functions[f_name]
+		if not maintenance_r_f then
+			mainlog(
+				"maintenance f() Function Index Mis-match: " .. f_name,
+				pdns.loglevels.Warning
+			)
+			goto continue
+		end
+		mainlog("maintenance f(): " .. f_name, pdns.loglevels.Debug)
+		local result = maintenance_r_f(dq)
 		if result == true then return result end
 		::continue::
 	end

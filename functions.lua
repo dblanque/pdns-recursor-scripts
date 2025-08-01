@@ -117,7 +117,7 @@ function f.isModuleAvailable(name)
 end
 
 -- Required for load-order based execution
-function f.addHookFunction(mode, f_name, f)
+function f.addHookFunction(mode, f_name, hook_fn)
 	local t_i -- Index
 	local t_f -- Function
 	if mode == "pre" then
@@ -137,7 +137,7 @@ function f.addHookFunction(mode, f_name, f)
 	end
 
 	table.insert(g[t_i], f_name)
-	g[t_f][f_name] = f
+	g[t_f][f_name] = hook_fn
 end
 
 return f

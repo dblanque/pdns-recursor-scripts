@@ -9,7 +9,7 @@
 
 example.com
 sub.example.org
-*.yahoo.com
+*.brconsulting.info
 ||bing.com^
 (\.|^)microsoft\.com$
 0.0.0.0 mozilla.org

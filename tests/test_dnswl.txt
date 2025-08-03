@@ -8,7 +8,8 @@
 !Skip this comment
 
 whitelisted.example.com
+smtp.brconsulting.info
 google-analytics.com
 srienlinea.sri.gob.ec
 *.pichincha.com
-bbc.com
+sub.bbc.com

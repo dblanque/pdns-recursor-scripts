@@ -10,4 +10,5 @@
 whitelisted.example.com
 google-analytics.com
 srienlinea.sri.gob.ec
-www.pichincha.com
+*.pichincha.com
+bbc.com

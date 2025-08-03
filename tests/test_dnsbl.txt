@@ -21,3 +21,6 @@ sub.example.org
 google-analytics.com
 srienlinea.sri.gob.ec
 www.pichincha.com
+pichincha.com
+bbc.com
+sub.bbc.com

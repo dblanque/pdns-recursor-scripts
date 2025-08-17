@@ -9,6 +9,10 @@ else
 	return false
 end
 
+-- List of private domains
+local_domain_overrides=newDS()
+local_domain_overrides_t={}
+
 -- loads contents of a file line by line into the given table
 local function loadDSFile(filename, suffixMatchGroup, domainTable)
 	if f.fileExists(filename) then
@@ -255,9 +259,6 @@ end
 
 -- Add preresolve functions to table, ORDER MATTERS
 if g.options.use_local_forwarder then
-	-- List of private domains
-	local_domain_overrides=newDS()
-	local_domain_overrides_t={}
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
 	if g.options.override_map and f.table_len(g.options.override_map) >= 1 then
 		f.addHookFunction("pre", "preresolve_override", preresolve_override)

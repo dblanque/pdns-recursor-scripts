@@ -7,8 +7,8 @@ return {
 	use_one_to_one = false,
     one_to_one_subnets = {
         ["127.0.0.0/16"]={
-			"target"="100.65.1.0/16",
-			"acl"={
+			["target"]="100.65.1.0/16",
+			["acl"]={
 				"100.64.0.0/16",
 			}
 		}

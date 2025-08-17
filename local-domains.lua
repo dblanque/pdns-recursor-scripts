@@ -23,8 +23,8 @@ local function is_internal_domain(dq, check_main)
 	end
 
 	return (
-		not local_domain_overrides:check(dq.qname) and
-		not dq.qname:isPartOf(main_domain_qname)
+		local_domain_overrides:check(dq.qname) or
+		dq.qname:isPartOf(main_domain_qname)
 	)
 end
 
@@ -217,7 +217,7 @@ local function postresolve_binat(dq)
 		return false
 	end
 
-	if is_internal_domain(dq, true) then
+	if not is_internal_domain(dq, true) then
 		pdnslog(
 			string.format(
 				"postresolve_binat(): Skipping BINAT for external record %s",

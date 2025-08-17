@@ -268,8 +268,8 @@ local function postresolve_binat(dq)
 			end
 		end
 
-		table.insert(result_dq, dr)
 		::continue::
+		table.insert(result_dq, dr)
 	end
 
 	if not update_dq then

@@ -13,7 +13,7 @@ end
 local_domain_overrides=newDS()
 local_domain_overrides_t={}
 
-local function is_internal_domain(qname, check_main)
+local function is_internal_domain(dq, check_main)
 	local main_domain_qname = newDN(
 		tostring(g.options.main_domain or "example.com")
 	)
@@ -24,7 +24,7 @@ local function is_internal_domain(qname, check_main)
 
 	return (
 		not local_domain_overrides:check(dq.qname) and
-		not qname:isPartOf(main_domain_qname)
+		not dq.qname:isPartOf(main_domain_qname)
 	)
 end
 
@@ -209,7 +209,7 @@ local function postresolve_binat(dq)
 		return false
 	end
 
-	if is_internal_domain(dq.qname, true) then
+	if is_internal_domain(dq, true) then
 		pdnslog(
 			string.format(
 				"postresolve_binat(): Skipping BINAT for external record %s",

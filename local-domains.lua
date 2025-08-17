@@ -70,10 +70,10 @@ end
 local function preresolve_regex(dq)
 	-- do not pre-resolve if not in our domains
 	if not local_domain_overrides:check(dq.qname) then 
-		pdnslog("loadDSFile(): Ignoring REGEX Pre-resolve for "..tostring(dq.qname), pdns.loglevels.Debug)
+		pdnslog("preresolve_regex(): Ignoring REGEX Pre-resolve for "..tostring(dq.qname), pdns.loglevels.Debug)
 		return false
 	else
-		pdnslog("loadDSFile(): Executing REGEX Pre-resolve for "..tostring(dq.qname), pdns.loglevels.Notice)
+		pdnslog("preresolve_regex(): Executing REGEX Pre-resolve for "..tostring(dq.qname), pdns.loglevels.Notice)
 	end
 	local qname = f.qname_remove_trailing_dot(dq)
 	local overridden = false
@@ -94,7 +94,7 @@ local function preresolve_regex(dq)
 			end
 		end
 		
-		pdnslog("loadDSFile(): REGEX Overridden Result: "..tostring(overridden), pdns.loglevels.Debug)
+		pdnslog("preresolve_regex(): REGEX Overridden Result: "..tostring(overridden), pdns.loglevels.Debug)
 		if not overridden then overridden = true end
 		::continue::
 	end
@@ -194,21 +194,24 @@ local function postresolve_binat(dq)
 		return false
 	end
 
-	local is_dq_internal = false
-	for i, domain in ipairs(local_domain_overrides_t) do
-		local parent_dn = newDN(domain)
-
-		if dq.qname:isPartOf(parent_dn) then
-			is_dq_internal = true
-		end
-	end
-
-	if not is_dq_internal then
+	-- do not post-resolve if not in our domains
+	if not local_domain_overrides:check(dq.qname) then
 		pdnslog(
-			"Skipping external postresolve_binat for ".. tostring(dq.qname),
-			pdns.loglevels.Debug
+			string.format(
+				"postresolve_binat(): Skipping BINAT for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Notice
 		)
 		return false
+	else
+		pdnslog(
+			string.format(
+				"postresolve_binat(): Executing BINAT for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Notice
+		)
 	end
 
 	if dq.qtype ~= pdns.A and dq.qtype ~= pdns.AAAA then

@@ -8,7 +8,6 @@ else
 	mainlog("pdns-recursor-scripts local-domains.lua requires rex_pcre or rex_pcre2 to be installed", pdns.loglevels.Error)
 	return false
 end
-require("translate-ip")
 
 -- List of private domains
 local_domain_overrides=newDS()
@@ -106,18 +105,37 @@ local function postresolve_one_to_one(dq)
 	
 			for _src, _opts in pairs(g.options.one_to_one_subnets) do
 				local _src_netmask = newNetmask(_src)
+				local _tgt_netmask = newNetmask(_opts["target"])
+				if not _src:sub(-2) == _tgt:sub(-2) then
+					pdnslog(
+						"One-to-One Source and Target must have same mask.",
+						pdns.loglevels.Error
+					)
+				end
+				if not _src_netmask:empty() then
+					pdnslog(
+						"One-to-One Source must be a CIDR without bits set.",
+						pdns.loglevels.Error
+					)
+				end
+				if not _tgt_netmask:empty() then
+					pdnslog(
+						"One-to-One Target must be a CIDR without bits set.",
+						pdns.loglevels.Error
+					)
+				end
+
 				pdnslog("One-to-One Source: " .. _src, pdns.loglevels.Debug)
 				pdnslog("One-to-One Target: " .. _tgt, pdns.loglevels.Debug)
+				local _acl = _opts["acl"]
+				local _acl_masks = newNMG()
+				_acl_masks:addMasks(_acl_masks)
 	
 				-- If source subnet string matches
 				if _src_netmask:match(dr_ca_str) then
-					local _tgt = _opts["target"]
-					local _acl = _opts["acl"]
-					local _acl_masks = newNMG()
-					_acl_masks:addMasks(_acl_masks)
 					-- If client ip is in One-to-One acl
 					if _acl_masks:match(get_client()) then
-						local new_dr = translate_ip(dr_ca_str, _src, _tgt)
+						local new_dr = dr_ca_str:gsub("^".._src, _tgt)
 						update_dq = true
 						dr:changeContent(new_dr)
 					end

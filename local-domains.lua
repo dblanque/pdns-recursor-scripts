@@ -173,6 +173,65 @@ local function preresolve_lo(dq)
 	return true
 end
 
+local function postresolve_int_binat_ipv4(dq)
+	if not g.options.binat_subnets then
+		return false
+	end
+
+	if dq.qtype ~= pdns.A then
+		pdnslog(
+			"Skipping postresolve_int_binat_ipv4 for ".. tostring(dq.qname),
+			pdns.loglevels.Debug
+		)
+		return false
+	end
+
+	local dq_records = dq:getRecords()
+	local result_dq = {}
+	local update_dq = false
+
+	for dr_index, dr in ipairs(dq_records) do
+		local dr_content = dr:getContent()
+		local binat_source = nil
+		local binat_target = nil
+		if not dr_content then
+			pdnslog(
+				"No DNSR Content for ".. tostring(dq.qname),
+				pdns.loglevels.Debug
+			)
+			goto continue
+		end
+		-- Call function without raising exception to parent process
+		local ok, dr_ca = pcall(newCA, dr_content)
+		local dr_ca_str = dr_ca:toString()
+		if not ok then
+			goto continue
+		end
+		pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
+
+		for _src, _tgt in pairs(g.options.binat_subnets) do
+			if dr_ca_str:find(_src) then
+				update_dq = true
+				dr:changeContent(dr_ca_str:gsub(_src, _tgt))
+			end
+		end
+
+		table.insert(result_dq, dr)
+		::continue::
+	end
+
+	if not update_dq then
+		return false
+	else
+		dq:setRecords(result_dq)
+		pdnslog(
+			string.format("Query Result %s", tostring(result_dq)),
+			pdns.loglevels.Debug
+		)
+		return true
+	end
+end
+
 -- Add preresolve functions to table, ORDER MATTERS
 if g.options.use_local_forwarder then
 	-- List of private domains
@@ -193,4 +252,9 @@ if g.options.use_local_forwarder then
 	end
 else
 	mainlog("Local Domain Forwarder Override not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)
+end
+
+if g.options.binat_subnets then
+	f.addHookFunction(
+		"post", "postresolve_int_binat_ipv4", postresolve_int_binat_ipv4)
 end

@@ -161,9 +161,6 @@ local function preresolve_lo(dq)
 	if not local_domain_overrides:check(dq.qname) then
 		return false
 	end
-	if dq.qtype == pdns.NS and g.options.private_zones_ns_override then
-		return false
-	end
 
 	local set_internal_reverse_proxy = false
 
@@ -192,18 +189,22 @@ local function preresolve_lo(dq)
 	return set_internal_reverse_proxy
 end
 
-local function postresolve_int_binat(dq)
+local function postresolve_binat(dq)
 	if not g.options.use_binat or not g.options.binat_subnets then
 		return false
 	end
 
 	if not local_domain_overrides:check(dq.qname) then
+		pdnslog(
+			"Skipping external postresolve_binat for ".. tostring(dq.qname),
+			pdns.loglevels.Debug
+		)
 		return false
 	end
 
 	if dq.qtype ~= pdns.A and dq.qtype ~= pdns.AAAA then
 		pdnslog(
-			"Skipping postresolve_int_binat for ".. tostring(dq.qname),
+			"Skipping non A/AAAA postresolve_binat for ".. tostring(dq.qname),
 			pdns.loglevels.Debug
 		)
 		return false
@@ -261,21 +262,27 @@ end
 if g.options.use_local_forwarder then
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
 	if g.options.override_map and f.table_len(g.options.override_map) >= 1 then
+		mainlog("Loading preresolve_override into pre-resolve functions.", pdns.loglevels.Notice)
 		f.addHookFunction("pre", "preresolve_override", preresolve_override)
 	end
+
 	if g.options.regex_map and f.table_len(g.options.regex_map) >= 1 then
+		mainlog("Loading preresolve_regex into pre-resolve functions.", pdns.loglevels.Notice)
 		f.addHookFunction("pre", "preresolve_regex", preresolve_regex)
 	end
 
-	mainlog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
-	f.addHookFunction("pre", "preresolve_lo", preresolve_lo)
 	if g.options.private_zones_ns_override then
+		mainlog("Loading preresolve_ns into pre-resolve functions.", pdns.loglevels.Notice)
 		f.addHookFunction("pre", "preresolve_ns", preresolve_ns)
 	end
 
 	if g.options.use_binat then
-		f.addHookFunction("post", "postresolve_int_binat", postresolve_int_binat)
+		mainlog("Loading postresolve_binat into post-resolve functions.", pdns.loglevels.Notice)
+		f.addHookFunction("post", "postresolve_binat", postresolve_binat)
 	end
+
+	mainlog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
+	f.addHookFunction("pre", "preresolve_lo", preresolve_lo)
 else
 	mainlog("Local Domain Forwarder Override not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)
 end

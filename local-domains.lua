@@ -192,8 +192,6 @@ local function postresolve_int_binat(dq)
 
 	for dr_index, dr in ipairs(dq_records) do
 		local dr_content = dr:getContent()
-		local binat_source = nil
-		local binat_target = nil
 		if not dr_content then
 			pdnslog(
 				"No DNSR Content for ".. tostring(dq.qname),

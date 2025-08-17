@@ -254,6 +254,9 @@ local function postresolve_binat(dq)
 		if not ok then
 			goto continue
 		end
+		if dr_ca.qtype ~= pdns.A or dr_ca.qtype ~= pdns.AAAA then
+			goto continue
+		end
 		local dr_ca_str = dr_ca:toString()
 		pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
 

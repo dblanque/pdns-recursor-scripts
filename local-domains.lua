@@ -161,16 +161,31 @@ local function preresolve_lo(dq)
 		return false
 	end
 
+	local set_internal_reverse_proxy = false
+
 	if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
-		dq:addAnswer(pdns.A, g.options.internal_reverse_proxy_v4, g.options.default_ttl)
+		if g.options.internal_reverse_proxy_v4 then
+			set_internal_reverse_proxy = true
+			dq:addAnswer(
+				pdns.A,
+				g.options.internal_reverse_proxy_v4,
+				g.options.default_ttl
+			)
+		end
 	end
 
 	if dq.qtype == pdns.AAAA or dq.qtype == pdns.ANY then
-		dq:addAnswer(pdns.AAAA, g.options.internal_reverse_proxy_v6, g.options.default_ttl)
+		if g.options.internal_reverse_proxy_v6 then
+			set_internal_reverse_proxy = true
+			dq:addAnswer(
+				pdns.AAAA,
+				g.options.internal_reverse_proxy_v6,
+				g.options.default_ttl
+			)
+		end
 	end
 
-	-- default, do not rewrite this response
-	return true
+	return set_internal_reverse_proxy
 end
 
 local function postresolve_int_binat(dq)

@@ -193,12 +193,14 @@ local function postresolve_binat(dq)
 	if not g.options.use_binat or not g.options.binat_subnets then
 		return false
 	end
-	local qname = newDN(tostring(dq.qname))
+	local main_domain_qname = newDN(
+		tostring(g.options.main_domain or "example.com")
+	)
 
 	-- do not post-resolve if not in our domains and not our main domain
 	if (
 		not local_domain_overrides:check(dq.qname) and
-		not qname:isPartOf(g.options.main_domain or "example.com")
+		not dq.qname:isPartOf(main_domain_qname)
 	) then
 		pdnslog(
 			string.format(

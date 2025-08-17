@@ -252,24 +252,26 @@ local function postresolve_binat(dq)
 		-- Call function without raising exception to parent process
 		local ok, dr_ca = pcall(newCA, dr_content)
 		if not ok then
+			table.insert(result_dq, dr)
 			goto continue
-		end
-		local dr_ca_str = dr_ca:toString()
-		pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
-
-		for _src, _tgt in pairs(g.options.binat_subnets) do
-			pdnslog("BINAT Source: " .. _src, pdns.loglevels.Debug)
-			pdnslog("BINAT Target: " .. _tgt, pdns.loglevels.Debug)
-
-			if dr_ca_str:find(_src) then
-				local new_dr = dr_ca_str:gsub("^".._src, _tgt)
-				update_dq = true
-				dr:changeContent(new_dr)
+		else
+			local dr_ca_str = dr_ca:toString()
+			pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
+	
+			for _src, _tgt in pairs(g.options.binat_subnets) do
+				pdnslog("BINAT Source: " .. _src, pdns.loglevels.Debug)
+				pdnslog("BINAT Target: " .. _tgt, pdns.loglevels.Debug)
+	
+				if dr_ca_str:find(_src) then
+					local new_dr = dr_ca_str:gsub("^".._src, _tgt)
+					update_dq = true
+					dr:changeContent(new_dr)
+				end
 			end
+	
+			table.insert(result_dq, dr)
 		end
-
 		::continue::
-		table.insert(result_dq, dr)
 	end
 
 	if not update_dq then

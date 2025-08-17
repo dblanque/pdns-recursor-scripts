@@ -256,10 +256,10 @@ if g.options.use_local_forwarder then
 	if g.options.private_zones_ns_override then
 		f.addHookFunction("pre", "preresolve_ns", preresolve_ns)
 	end
+
+	if g.options.use_binat then
+		f.addHookFunction("post", "postresolve_int_binat", postresolve_int_binat)
+	end
 else
 	mainlog("Local Domain Forwarder Override not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)
-end
-
-if g.options.use_binat then
-	f.addHookFunction("post", "postresolve_int_binat", postresolve_int_binat)
 end

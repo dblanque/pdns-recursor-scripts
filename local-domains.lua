@@ -13,6 +13,10 @@ end
 local_domain_overrides=newDS()
 local_domain_overrides_t={}
 
+local function get_client(dq)
+	return dq.remoteaddr:toString()
+end
+
 local function is_internal_domain(dq, check_main)
 	local main_domain_qname = newDN(
 		tostring(g.options.main_domain or "example.com")

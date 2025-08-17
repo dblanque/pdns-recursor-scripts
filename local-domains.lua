@@ -214,7 +214,7 @@ local function postresolve_int_binat(dq)
 			pdnslog("BINAT Target: " .. _tgt, pdns.loglevels.Debug)
 
 			if dr_ca_str:find(_src) then
-				local new_dr = dr_ca_str:gsub(_src, _tgt)
+				local new_dr = dr_ca_str:gsub("%^".._src, _tgt)
 				update_dq = true
 				dr:changeContent(new_dr)
 			end

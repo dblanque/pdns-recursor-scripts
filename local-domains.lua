@@ -210,6 +210,9 @@ local function postresolve_int_binat_ipv4(dq)
 		pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
 
 		for _src, _tgt in pairs(g.options.binat_subnets) do
+			pdnslog("BINAT Source: " .. _src, pdns.loglevels.Debug)
+			pdnslog("BINAT Target: " .. _tgt, pdns.loglevels.Debug)
+
 			if dr_ca_str:find(_src) then
 				update_dq = true
 				dr:changeContent(dr_ca_str:gsub(_src, _tgt))

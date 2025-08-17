@@ -4,9 +4,14 @@
 return {
 	-- Local Domain Override Options
 	main_domain = "example.com",
-	use_binat = false,
-    binat_subnets = {
-        ["127.0.0."]="100.64.0."
+	use_one_to_one = false,
+    one_to_one_subnets = {
+        ["127.0.0.0/16"]={
+			"target"="100.65.1.0/16",
+			"acl"={
+				"100.64.0.0/16",
+			}
+		}
     },
 	internal_reverse_proxy_v4 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
 	internal_reverse_proxy_v6 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",

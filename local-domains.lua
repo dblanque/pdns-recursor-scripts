@@ -178,6 +178,10 @@ local function postresolve_int_binat(dq)
 		return false
 	end
 
+	if not local_domain_overrides:check(dq.qname) then
+		return false
+	end
+
 	if dq.qtype ~= pdns.A and dq.qtype ~= pdns.AAAA then
 		pdnslog(
 			"Skipping postresolve_int_binat for ".. tostring(dq.qname),

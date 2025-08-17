@@ -194,12 +194,11 @@ local function postresolve_binat(dq)
 		return false
 	end
 
-	-- do not post-resolve if not in our domains
-	if not local_domain_overrides:check(dq.qname) then
-		pdnslog(
-			"postresolve_binat(): "..local_domain_overrides:toString(),
-			pdns.loglevels.Debug
-		)
+	-- do not post-resolve if not in our domains and not our main domain
+	if (
+		not local_domain_overrides:check(dq.qname) and
+		not dq.qname:isPartOf(g.options.main_domain or "example.com")
+	) then
 		pdnslog(
 			string.format(
 				"postresolve_binat(): Skipping BINAT for external record %s",

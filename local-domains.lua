@@ -209,14 +209,6 @@ local function postresolve_binat(dq)
 		return false
 	end
 
-	if dq.qtype ~= pdns.A and dq.qtype ~= pdns.AAAA then
-		pdnslog(
-			"Skipping non A/AAAA postresolve_binat for ".. tostring(dq.qname),
-			pdns.loglevels.Debug
-		)
-		return false
-	end
-
 	if not is_internal_domain(dq, true) then
 		pdnslog(
 			string.format(

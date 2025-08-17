@@ -13,6 +13,21 @@ end
 local_domain_overrides=newDS()
 local_domain_overrides_t={}
 
+local function is_internal_domain(qname, check_main)
+	local main_domain_qname = newDN(
+		tostring(g.options.main_domain or "example.com")
+	)
+
+	if not check_main then
+		return local_domain_overrides:check(dq.qname)
+	end
+
+	return (
+		not local_domain_overrides:check(dq.qname) and
+		not qname:isPartOf(main_domain_qname)
+	)
+end
+
 -- loads contents of a file line by line into the given table
 local function loadDSFile(filename, suffixMatchGroup, domainTable)
 	if f.fileExists(filename) then
@@ -193,15 +208,8 @@ local function postresolve_binat(dq)
 	if not g.options.use_binat or not g.options.binat_subnets then
 		return false
 	end
-	local main_domain_qname = newDN(
-		tostring(g.options.main_domain or "example.com")
-	)
 
-	-- do not post-resolve if not in our domains and not our main domain
-	if (
-		not local_domain_overrides:check(dq.qname) and
-		not dq.qname:isPartOf(main_domain_qname)
-	) then
+	if is_internal_domain(dq.qname, true) then
 		pdnslog(
 			string.format(
 				"postresolve_binat(): Skipping BINAT for external record %s",

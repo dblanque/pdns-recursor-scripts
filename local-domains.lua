@@ -194,7 +194,16 @@ local function postresolve_binat(dq)
 		return false
 	end
 
-	if not local_domain_overrides:check(dq.qname) then
+	local is_dq_internal = false
+	for i, domain in ipairs(local_domain_overrides_t) do
+		local parent_dn = newDN(domain)
+
+		if dq.qname:isPartOf(parent_dn) then
+			is_dq_internal = true
+		end
+	end
+
+	if not is_dq_internal then
 		pdnslog(
 			"Skipping external postresolve_binat for ".. tostring(dq.qname),
 			pdns.loglevels.Debug

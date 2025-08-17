@@ -79,6 +79,8 @@ local function preresolve_override(dq)
 			::continue::
 		end
 	end
+
+	postresolve_binat(dq)
 	return overridden
 end
 
@@ -113,6 +115,8 @@ local function preresolve_regex(dq)
 		if not overridden then overridden = true end
 		::continue::
 	end
+
+	postresolve_binat(dq)
 	return overridden
 end
 
@@ -167,6 +171,8 @@ local function preresolve_ns(dq)
 			end
 		end
 	end
+
+	postresolve_binat(dq)
 	return false
 end
 
@@ -201,6 +207,7 @@ local function preresolve_lo(dq)
 		end
 	end
 
+	postresolve_binat(dq)
 	return set_internal_reverse_proxy
 end
 

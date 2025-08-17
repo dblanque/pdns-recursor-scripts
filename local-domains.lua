@@ -173,14 +173,14 @@ local function preresolve_lo(dq)
 	return true
 end
 
-local function postresolve_int_binat_ipv4(dq)
-	if not g.options.binat_subnets then
+local function postresolve_int_binat(dq)
+	if not g.options.use_binat or not g.options.binat_subnets then
 		return false
 	end
 
-	if dq.qtype ~= pdns.A then
+	if dq.qtype ~= pdns.A and dq.qtype ~= pdns.AAAA then
 		pdnslog(
-			"Skipping postresolve_int_binat_ipv4 for ".. tostring(dq.qname),
+			"Skipping postresolve_int_binat for ".. tostring(dq.qname),
 			pdns.loglevels.Debug
 		)
 		return false
@@ -258,7 +258,6 @@ else
 	mainlog("Local Domain Forwarder Override not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)
 end
 
-if g.options.binat_subnets then
-	f.addHookFunction(
-		"post", "postresolve_int_binat_ipv4", postresolve_int_binat_ipv4)
+if g.options.use_binat then
+	f.addHookFunction("post", "postresolve_int_binat", postresolve_int_binat)
 end

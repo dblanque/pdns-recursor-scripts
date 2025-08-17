@@ -53,6 +53,80 @@ local function valid_type_replace(dq_type, replace_type)
 	return true
 end
 
+local function postresolve_binat(dq)
+	if not g.options.use_binat or not g.options.binat_subnets then
+		return false
+	end
+
+	if not is_internal_domain(dq, true) then
+		pdnslog(
+			string.format(
+				"postresolve_binat(): Skipping BINAT for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
+		return false
+	else
+		pdnslog(
+			string.format(
+				"postresolve_binat(): Executing BINAT for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
+	end
+
+	local dq_records = dq:getRecords()
+	local result_dq = {}
+	local update_dq = false
+
+	for dr_index, dr in ipairs(dq_records) do
+		local dr_content = dr:getContent()
+		if not dr_content then
+			pdnslog(
+				"No DNSR Content for ".. tostring(dq.qname),
+				pdns.loglevels.Debug
+			)
+			goto continue
+		end
+		-- Call function without raising exception to parent process
+		local ok, dr_ca = pcall(newCA, dr_content)
+		if not ok then
+			table.insert(result_dq, dr)
+			goto continue
+		else
+			local dr_ca_str = dr_ca:toString()
+			pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
+	
+			for _src, _tgt in pairs(g.options.binat_subnets) do
+				pdnslog("BINAT Source: " .. _src, pdns.loglevels.Debug)
+				pdnslog("BINAT Target: " .. _tgt, pdns.loglevels.Debug)
+	
+				if dr_ca_str:find(_src) then
+					local new_dr = dr_ca_str:gsub("^".._src, _tgt)
+					update_dq = true
+					dr:changeContent(new_dr)
+				end
+			end
+	
+			table.insert(result_dq, dr)
+		end
+		::continue::
+	end
+
+	if not update_dq then
+		return false
+	else
+		dq:setRecords(result_dq)
+		pdnslog(
+			string.format("Query Result %s", tostring(result_dq)),
+			pdns.loglevels.Debug
+		)
+		return true
+	end
+end
+
 local function preresolve_override(dq)
 	-- do not pre-resolve if not in our domains
 	if not local_domain_overrides:check(dq.qname) then return false end
@@ -209,80 +283,6 @@ local function preresolve_lo(dq)
 
 	postresolve_binat(dq)
 	return set_internal_reverse_proxy
-end
-
-local function postresolve_binat(dq)
-	if not g.options.use_binat or not g.options.binat_subnets then
-		return false
-	end
-
-	if not is_internal_domain(dq, true) then
-		pdnslog(
-			string.format(
-				"postresolve_binat(): Skipping BINAT for external record %s",
-				dq.qname:toString()
-			),
-			pdns.loglevels.Debug
-		)
-		return false
-	else
-		pdnslog(
-			string.format(
-				"postresolve_binat(): Executing BINAT for external record %s",
-				dq.qname:toString()
-			),
-			pdns.loglevels.Debug
-		)
-	end
-
-	local dq_records = dq:getRecords()
-	local result_dq = {}
-	local update_dq = false
-
-	for dr_index, dr in ipairs(dq_records) do
-		local dr_content = dr:getContent()
-		if not dr_content then
-			pdnslog(
-				"No DNSR Content for ".. tostring(dq.qname),
-				pdns.loglevels.Debug
-			)
-			goto continue
-		end
-		-- Call function without raising exception to parent process
-		local ok, dr_ca = pcall(newCA, dr_content)
-		if not ok then
-			table.insert(result_dq, dr)
-			goto continue
-		else
-			local dr_ca_str = dr_ca:toString()
-			pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
-	
-			for _src, _tgt in pairs(g.options.binat_subnets) do
-				pdnslog("BINAT Source: " .. _src, pdns.loglevels.Debug)
-				pdnslog("BINAT Target: " .. _tgt, pdns.loglevels.Debug)
-	
-				if dr_ca_str:find(_src) then
-					local new_dr = dr_ca_str:gsub("^".._src, _tgt)
-					update_dq = true
-					dr:changeContent(new_dr)
-				end
-			end
-	
-			table.insert(result_dq, dr)
-		end
-		::continue::
-	end
-
-	if not update_dq then
-		return false
-	else
-		dq:setRecords(result_dq)
-		pdnslog(
-			string.format("Query Result %s", tostring(result_dq)),
-			pdns.loglevels.Debug
-		)
-		return true
-	end
 end
 
 -- Add preresolve functions to table, ORDER MATTERS

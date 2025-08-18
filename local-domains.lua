@@ -139,7 +139,7 @@ local function postresolve_one_to_one(dq)
 					)
 					-- If client ip is in One-to-One acl
 					if _acl_masks:match(client_addr) then
-						local new_dr = ip_nat.translate_ip(
+						local new_dr = translate_ip(
 							dr_ca_str,
 							_src,
 							_tgt

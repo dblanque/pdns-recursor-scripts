@@ -147,6 +147,10 @@ local function postresolve_one_to_one(dq)
 							"Masked Net: " .. _src_ca:toString(),
 							pdns.loglevels.Debug
 						)
+						pdnslog(
+							"Masked Net (RAW): " .. tostring(_src_ca:getRaw()),
+							pdns.loglevels.Debug
+						)
 						local new_dr = dr_ca_str:gsub("^".._src, _tgt)
 						update_dq = true
 						dr:changeContent(new_dr)

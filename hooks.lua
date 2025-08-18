@@ -132,7 +132,5 @@ function maintenance(dq)
 end
 
 function preoutquery(dq)
-	if preoutQueryCnameChain and dq then
-		preoutQueryCnameChain(dq)
-	end
+	pdnslog(dq.qname:toString())
 end

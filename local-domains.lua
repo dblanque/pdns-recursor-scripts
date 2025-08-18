@@ -258,6 +258,7 @@ local function replace_content(dq, dq_override)
 		if pdns[dq_type] == pdns.CNAME then
 			-- Don't use this here or we don't get post-resolve 1-to-1 changes
 			-- dq.followupFunction="followCNAMERecords"
+			pdnslog("Will use CNAME Chain postresolve rules.", pdns.loglevels.Debug)
 			dq.data.cname_chain = true
 			return "cname"
 		end
@@ -368,7 +369,6 @@ local function preresolve_regex(dq)
 end
 
 local function preresolve_ns(dq)
-	pdnslog(f.table_to_str(dq:getPolicyTags(), ", "))
 	if dq.qtype ~= pdns.NS then
 		return false
 	end

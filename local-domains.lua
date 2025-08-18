@@ -258,7 +258,7 @@ function gotdomaindetails(dq)
     dq.data["cname_chain_data"]=data
     dq.udpQuery="IP "..dq.remoteaddr:toString()
     dq.udpCallback="gotipdetails"
-    return false
+    return true
 end
 
 function gotipdetails(dq)

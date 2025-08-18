@@ -133,4 +133,5 @@ end
 
 function preoutquery(dq)
 	pdnslog(dq.qname:toString())
+	return false
 end

@@ -135,9 +135,9 @@ local function postresolve_one_to_one(dq)
 		-- CA = ComboAddress Object
 		local ok, record_ca = pcall(newCA, record_content)
 		if not ok then
-			pdnslog(pdns.CNAME)
-			pdnslog(record.type)
-			pdnslog(record_content)
+			if record.type == pdns.CNAME then
+				prev_cname = record_content
+			end
 			table.insert(result_dq, record)
 			goto continue
 		else

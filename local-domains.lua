@@ -79,7 +79,7 @@ local function valid_type_replace(dq_type, replace_type)
 end
 
 local function postresolve_one_to_one(dq)
-	local debug = g.options.debug_one_to_one
+	local fn_debug = g.options.debug_post_one_to_one
 	if not g.options.use_one_to_one or not g.options.one_to_one_subnets then
 		return false
 	end
@@ -114,7 +114,7 @@ local function postresolve_one_to_one(dq)
 	for dr_index, dr in ipairs(dq_records) do
 		local dr_content = dr:getContent()
 		if not dr_content then
-			if debug then
+			if fn_debug then
 				pdnslog(
 					"No DNSR Content for " .. dq.qname:toString(),
 					pdns.loglevels.Debug
@@ -129,7 +129,7 @@ local function postresolve_one_to_one(dq)
 			goto continue
 		else
 			local dr_ca_str = dr_ca:toString()
-			if debug then
+			if fn_debug then
 				pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
 			end
 	
@@ -144,7 +144,7 @@ local function postresolve_one_to_one(dq)
 				local _tgt_prefix_len = tonumber(_tgt:sub(-2))
 				-- Compare Prefix length for both netmasks
 				if not _src_prefix_len == _tgt_prefix_len then
-					if debug then
+					if fn_debug then
 						pdnslog(
 							"One-to-One Source and Target must have same mask.",
 							pdns.loglevels.Error
@@ -153,7 +153,7 @@ local function postresolve_one_to_one(dq)
 					goto continue
 				end
 
-				if debug then
+				if fn_debug then
 					pdnslog("One-to-One Source: " .. _src, pdns.loglevels.Debug)
 					pdnslog("One-to-One Target: " .. _tgt, pdns.loglevels.Debug)
 				end
@@ -161,7 +161,7 @@ local function postresolve_one_to_one(dq)
 				local _acl = _opts["acl"]
 				local _acl_masks = newNMG()
 				_acl_masks:addMasks(_acl)
-				if debug then
+				if fn_debug then
 					pdnslog(
 						"One-to-One will only apply to: " .. f.table_to_str(_acl, ", "),
 						pdns.loglevels.Debug
@@ -170,7 +170,7 @@ local function postresolve_one_to_one(dq)
 	
 				-- If source subnet string matches
 				if _src_netmask:match(dr_ca_str) then
-					if debug then
+					if fn_debug then
 						pdnslog(
 							"Source Netmask Matched: " .. dr_ca_str,
 							pdns.loglevels.Debug
@@ -240,6 +240,8 @@ end
 local cnameReturnOnReplace = false
 
 local function preresolve_override(dq)
+	local fn_debug = g.options.debug_pre_override
+
 	-- do not pre-resolve if not in our domains
 	if is_excluded_from_local(dq) then
 		return false
@@ -285,6 +287,8 @@ local function preresolve_override(dq)
 end
 
 local function preresolve_regex(dq)
+	local fn_debug = g.options.debug_pre_regex
+
 	-- do not pre-resolve if not in our domains
 	if is_excluded_from_local(dq) then
 		return false
@@ -318,10 +322,12 @@ local function preresolve_regex(dq)
 		end
 
 		replaced = replace_content(dq, value)
-		pdnslog(
-			"preresolve_regex(): REGEX Overridden Result: " .. tostring(overridden),
-			pdns.loglevels.Debug
-		)
+		if fn_debug then
+			pdnslog(
+				"preresolve_regex(): REGEX Overridden Result: " .. tostring(overridden),
+				pdns.loglevels.Debug
+			)
+		end
 		if replaced == "cname" then
 			replaced = cnameReturnOnReplace
 			break

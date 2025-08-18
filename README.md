@@ -22,12 +22,12 @@ Script Repository maintained by Dylan Blanqué. Created January 2024.
 
 ### Would you like to support me?
 <a href='https://ko-fi.com/E1E2YQ4TG' target='_blank'>
-	<img
-		height='36'
-		style='border:0px;height:36px;'
-		src='https://storage.ko-fi.com/cdn/kofi2.png?v=3'
-		border='0'
-		alt='Buy Me a Coffee at ko-fi.com' />
+  <img
+	height='36'
+	style='border:0px;height:36px;'
+	src='https://storage.ko-fi.com/cdn/kofi2.png?v=3'
+	border='0'
+	alt='Buy Me a Coffee at ko-fi.com' />
 </a>
 
 # REQUIREMENTS
@@ -76,34 +76,48 @@ file for this feature to work properly `(See local-domains-example.list)`.
 You can override NS Servers for your local zones, as well as standard record types
 such as CNAME, A, and AAAA, for example.
 
+Generally speaking the application is for when you want to let your internal
+main domain be resolved by your Domain Controller (e.g. Samba LDAP,
+Microsoft ADDS, etc.), but you also want other internal domains to resolve to
+your internal reverse proxy without having to manually administrate each zone.
+
+For that end you may put all your internal domains except for your main domain
+in the `local-domains.list` file, and define your main domain as `main_domain`
+(For alternative functions like `postresolve_binat` to work).
+
 ```lua
 -- /etc/powerdns/pdns-recursor-scripts/conf.d/local-resolve.lua
 return {
-        internal_reverse_proxy_v4 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
-        internal_reverse_proxy_v6 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
-        use_local_forwarder = true,
-        private_zones_ns_override_map_only = true,
-        private_zones_ns_override_map = {
-                ['domain.com'] = {'ns1','ns2','dns','dot','doh'}
-        },
-        private_zones_ns_override = true,
-        override_map = {
-                ['something.domain.com']={
-                        "A",
-                        {"127.0.0.1", "127.0.0.2"}
-                }
-        },
-        regex_map = {
-                ['^(mail|smtp|imap|smtps|smtp)\\..*$']={
-                        "CNAME",
-                        {"mailserver.domain.com"}
-                },
-                ['^(dns|dot|doh|ns[0-9])\\..*$']={
-                        "A",
-                        {"127.0.0.1"}
-                }
-        },
-        default_ttl = 900
+	main_domain = "example.com",
+	use_binat = false,
+	binat_subnets = {
+		["127.0.0."]="100.64.0."
+	},
+	internal_reverse_proxy_v4 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
+	internal_reverse_proxy_v6 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
+	use_local_forwarder = true,
+	private_zones_ns_override_map_only = true,
+	private_zones_ns_override_map = {
+		["example.com"] = {"ns1","ns2","dns","dot","doh"}
+	},
+	private_zones_ns_override = true,
+	override_map = {
+		["something.example.com"]={
+			"A",
+			{"127.0.0.1", "127.0.0.2"}
+		}
+	},
+	regex_map = {
+		["^(mail|smtp|imap|smtps|smtp)\\..*$"]={
+			"CNAME",
+			{"mailserver.example.com"}
+		},
+		["^(dns|dot|doh|ns[0-9])\\..*$"]={
+			"A",
+			{"127.0.0.1"}
+		}
+	},
+	default_ttl = 900
 }
 ```
 

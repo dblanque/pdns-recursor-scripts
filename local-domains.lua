@@ -1,12 +1,54 @@
 -- Split DNS Filtering
 -- Add your Default Web Reverse Proxy or desired Internal IP for your domain.
 if f.isModuleAvailable("rex_pcre") then
-	re = require"rex_pcre"
+	re = require "rex_pcre"
 elseif f.isModuleAvailable("rex_pcre2") then
-	re = require"rex_pcre2"
+	re = require "rex_pcre2"
 else
 	mainlog("pdns-recursor-scripts local-domains.lua requires rex_pcre or rex_pcre2 to be installed", pdns.loglevels.Error)
 	return false
+end
+require "ip-translate"
+
+-- List of private domains
+local local_domain_overrides=newDS()
+local local_domain_overrides_t={}
+local local_whitelist_ds = newDS()
+
+-- Populate whitelist
+if g.options.exclude_local_forwarder_domains then
+	for _, domain in ipairs(g.options.exclude_local_forwarder_domains) do
+		local_whitelist_ds:add(newDN(domain))
+	end
+end
+
+local function get_client(dq)
+	if not dq then
+		error("get_client requires a dq object.")
+	end
+	return dq.remoteaddr
+end
+
+local function is_internal_domain(dq, check_main)
+	local main_domain_qname = newDN(
+		tostring(g.options.main_domain or "example.com")
+	)
+
+	if not check_main then
+		return local_domain_overrides:check(dq.qname)
+	end
+
+	return (
+		local_domain_overrides:check(dq.qname) or
+		dq.qname:isPartOf(main_domain_qname)
+	)
+end
+
+local function is_excluded_from_local(dq)
+	if not g.options.exclude_local_forwarder_domains then
+		return false
+	end
+	return local_whitelist_ds:check(dq.qname)
 end
 
 -- loads contents of a file line by line into the given table
@@ -34,9 +76,146 @@ local function valid_type_replace(dq_type, replace_type)
 	return true
 end
 
+local function postresolve_one_to_one(dq)
+	if not g.options.use_one_to_one or not g.options.one_to_one_subnets then
+		return false
+	end
+	if is_excluded_from_local(dq) then
+		return false
+	end
+
+	if not is_internal_domain(dq, true) then
+		pdnslog(
+			string.format(
+				"postresolve_one_to_one(): Skipping One-to-One for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
+		return false
+	else
+		pdnslog(
+			string.format(
+				"postresolve_one_to_one(): Executing One-to-One for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
+	end
+
+	local dq_records = dq:getRecords()
+	local result_dq = {}
+	local update_dq = false
+	local client_addr = get_client(dq)
+
+	for dr_index, dr in ipairs(dq_records) do
+		local dr_content = dr:getContent()
+		if not dr_content then
+			pdnslog(
+				"No DNSR Content for ".. tostring(dq.qname),
+				pdns.loglevels.Debug
+			)
+			goto continue
+		end
+		-- Call function without raising exception to parent process
+		local ok, dr_ca = pcall(newCA, dr_content)
+		if not ok then
+			table.insert(result_dq, dr)
+			goto continue
+		else
+			local dr_ca_str = dr_ca:toString()
+			pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
+	
+			-- Check if record is within 1-to-1 requested subnets
+			for _src, _opts in pairs(g.options.one_to_one_subnets) do
+				local _tgt = _opts["target"]
+				-- Make source netmask
+				local _src_netmask = newNetmask(_src)
+				local _src_prefix_len = tonumber(_src:sub(-2))
+				-- Make target netmask
+				local _tgt_netmask = newNetmask(_tgt)
+				local _tgt_prefix_len = tonumber(_tgt:sub(-2))
+				-- Compare Prefix length for both netmasks
+				if not _src_prefix_len == _tgt_prefix_len then
+					pdnslog(
+						"One-to-One Source and Target must have same mask.",
+						pdns.loglevels.Error
+					)
+				end
+
+				pdnslog("One-to-One Source: " .. _src, pdns.loglevels.Debug)
+				pdnslog("One-to-One Target: " .. _tgt, pdns.loglevels.Debug)
+
+				-- Parse ACLs for 1-to-1
+				local _acl = _opts["acl"]
+				local _acl_masks = newNMG()
+				_acl_masks:addMasks(_acl)
+				pdnslog(
+					"One-to-One will only apply to: " .. f.table_to_str(_acl, ", "),
+					pdns.loglevels.Debug
+				)
+	
+				-- If source subnet string matches
+				if _src_netmask:match(dr_ca_str) then
+					pdnslog(
+						"Source Netmask Matched: " .. dr_ca_str,
+						pdns.loglevels.Debug
+					)
+					-- If client ip is in 1-to-1 ACLs...
+					if _acl_masks:match(client_addr) then
+						local new_dr = translate_ip(
+							dr_ca_str,
+							_src,
+							_tgt
+						)
+						update_dq = true
+						dr:changeContent(new_dr)
+					end
+				end
+			end
+	
+			table.insert(result_dq, dr)
+		end
+		::continue::
+	end
+
+	if not update_dq then
+		return false
+	else
+		dq:setRecords(result_dq)
+		pdnslog(
+			string.format("Query Result %s", tostring(result_dq)),
+			pdns.loglevels.Debug
+		)
+		return true
+	end
+end
+
 local function preresolve_override(dq)
 	-- do not pre-resolve if not in our domains
-	if not local_domain_overrides:check(dq.qname) then return false end
+	if is_excluded_from_local(dq) then
+		return false
+	end
+
+	if not is_internal_domain(dq, true) then
+		pdnslog(
+			string.format(
+				"preresolve_override(): Skipping Override for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
+		return false
+	else
+		pdnslog(
+			string.format(
+				"preresolve_override(): Executing Override for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
+	end
+
 	local qname = f.qname_remove_trailing_dot(dq)
 	local overridden = false
 	if f.table_contains_key(g.options.override_map, qname) then
@@ -60,46 +239,102 @@ local function preresolve_override(dq)
 			::continue::
 		end
 	end
-	return overridden
+
+	local did_one_to_one = postresolve_one_to_one(dq)
+	return overridden or did_one_to_one
 end
 
 local function preresolve_regex(dq)
 	-- do not pre-resolve if not in our domains
-	if not local_domain_overrides:check(dq.qname) then 
-		pdnslog("loadDSFile(): Ignoring REGEX Pre-resolve for "..tostring(dq.qname), pdns.loglevels.Debug)
+	if is_excluded_from_local(dq) then
+		return false
+	end
+
+	if not is_internal_domain(dq, true) then
+		pdnslog(
+			string.format(
+				"preresolve_regex(): Skipping regex pre-resolve for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
 		return false
 	else
-		pdnslog("loadDSFile(): Executing REGEX Pre-resolve for "..tostring(dq.qname), pdns.loglevels.Notice)
+		pdnslog(
+			string.format(
+				"preresolve_regex(): Executing regex pre-resolve for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
 	end
+
 	local qname = f.qname_remove_trailing_dot(dq)
 	local overridden = false
 	for key, value in pairs(g.options.regex_map) do
-		if not re.match(qname, key) then goto continue end
+		if not re.match(qname, key) then
+			goto continue
+		end
+
 		local dq_override = value
 		local dq_type = dq_override[1]
 		local dq_replace_any = dq_override[4]
-		if not valid_type_replace(dq.qtype, pdns[dq_type]) and not dq_replace_any then goto continue end
+		if (
+			not valid_type_replace(dq.qtype, pdns[dq_type]) and
+			not dq_replace_any
+		) then
+			goto continue
+		end
+
 		local dq_values = dq_override[2]
 		local dq_ttl = dq_override[3] or g.options.default_ttl
 		for i, v in ipairs(dq_values) do
 			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 			-- If it's a CNAME Replacement, only allow one value.
 			if pdns[dq_type] == pdns.CNAME then
-				dq.followupFunction="followCNAMERecords"
+				-- dq.followupFunction="followCNAMERecords"
+				dq.followupFunction="udpQueryResponse"
+				dq.udpCallback="postresolve_one_to_one"
 				break
 			end
 		end
-		
-		pdnslog("loadDSFile(): REGEX Overridden Result: "..tostring(overridden), pdns.loglevels.Debug)
-		if not overridden then overridden = true end
+
+		overridden = true
+		pdnslog(
+			"preresolve_regex(): REGEX Overridden Result: " .. tostring(overridden),
+			pdns.loglevels.Debug
+		)
 		::continue::
 	end
+
 	return overridden
 end
 
 local function preresolve_ns(dq)
 	-- do not pre-resolve if not in our domains
-	if not local_domain_overrides:check(dq.qname) then return false end
+	if is_excluded_from_local(dq) then
+		return false
+	end
+
+	if not is_internal_domain(dq, true) then
+		pdnslog(
+			string.format(
+				"preresolve_ns(): Skipping NS pre-resolve for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
+		return false
+	else
+		pdnslog(
+			string.format(
+				"preresolve_ns(): Executing NS pre-resolve for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
+	end
+
 	if not g.options.private_zones_ns_override then return false end
 
 	if dq.qtype == pdns.NS then
@@ -148,49 +383,88 @@ local function preresolve_ns(dq)
 			end
 		end
 	end
+
 	return false
 end
 
 -- this function is hooked before resolving starts
-local function preresolve_lo(dq)
+local function preresolve_rpr(dq)
 	-- do not pre-resolve if not in our domains
-	if not local_domain_overrides:check(dq.qname) then
-		return false
-	end
-	if dq.qtype == pdns.NS and g.options.private_zones_ns_override then
+	if is_excluded_from_local(dq) then
 		return false
 	end
 
+	if not is_internal_domain(dq, true) then
+		pdnslog(
+			string.format(
+				"preresolve_rpr(): Skipping reverse proxy replacement pre-resolve for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
+		return false
+	else
+		pdnslog(
+			string.format(
+				"preresolve_rpr(): Executing reverse proxy replacement pre-resolve for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
+	end
+
+	local set_internal_reverse_proxy = false
 	if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
-		dq:addAnswer(pdns.A, g.options.internal_reverse_proxy_v4, g.options.default_ttl)
+		if g.options.internal_reverse_proxy_v4 then
+			set_internal_reverse_proxy = true
+			dq:addAnswer(
+				pdns.A,
+				g.options.internal_reverse_proxy_v4,
+				g.options.default_ttl
+			)
+		end
 	end
 
 	if dq.qtype == pdns.AAAA or dq.qtype == pdns.ANY then
-		dq:addAnswer(pdns.AAAA, g.options.internal_reverse_proxy_v6, g.options.default_ttl)
+		if g.options.internal_reverse_proxy_v6 then
+			set_internal_reverse_proxy = true
+			dq:addAnswer(
+				pdns.AAAA,
+				g.options.internal_reverse_proxy_v6,
+				g.options.default_ttl
+			)
+		end
 	end
 
-	-- default, do not rewrite this response
-	return true
+	local did_one_to_one = postresolve_one_to_one(dq)
+	return set_internal_reverse_proxy or did_one_to_one
 end
 
 -- Add preresolve functions to table, ORDER MATTERS
 if g.options.use_local_forwarder then
-	-- List of private domains
-	local_domain_overrides=newDS()
-	local_domain_overrides_t={}
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
 	if g.options.override_map and f.table_len(g.options.override_map) >= 1 then
+		mainlog("Loading preresolve_override into pre-resolve functions.", pdns.loglevels.Notice)
 		f.addHookFunction("pre", "preresolve_override", preresolve_override)
 	end
+
 	if g.options.regex_map and f.table_len(g.options.regex_map) >= 1 then
+		mainlog("Loading preresolve_regex into pre-resolve functions.", pdns.loglevels.Notice)
 		f.addHookFunction("pre", "preresolve_regex", preresolve_regex)
 	end
 
-	mainlog("Loading preresolve_lo into pre-resolve functions.", pdns.loglevels.Notice)
-	f.addHookFunction("pre", "preresolve_lo", preresolve_lo)
 	if g.options.private_zones_ns_override then
+		mainlog("Loading preresolve_ns into pre-resolve functions.", pdns.loglevels.Notice)
 		f.addHookFunction("pre", "preresolve_ns", preresolve_ns)
 	end
+
+	if g.options.use_one_to_one then
+		mainlog("Loading postresolve_one_to_one into post-resolve functions.", pdns.loglevels.Notice)
+		f.addHookFunction("post", "postresolve_one_to_one", postresolve_one_to_one)
+	end
+
+	mainlog("Loading preresolve_rpr into pre-resolve functions.", pdns.loglevels.Notice)
+	f.addHookFunction("pre", "preresolve_rpr", preresolve_rpr)
 else
 	mainlog("Local Domain Forwarder Override not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)
 end

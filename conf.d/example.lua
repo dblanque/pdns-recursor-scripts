@@ -3,33 +3,46 @@
 -- Recommended names: overrides.lua || settings.lua || conf_dnsbl.lua || conf_local.lua
 return {
 	-- Local Domain Override Options
+	main_domain = "example.com",
+	use_one_to_one = false,
+    one_to_one_subnets = {
+        ["127.0.0.0/16"]={
+			["target"]="100.65.1.0/16",
+			["acl"]={
+				"100.64.0.0/16",
+			}
+		}
+    },
 	internal_reverse_proxy_v4 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
 	internal_reverse_proxy_v6 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
-	use_local_forwarder = true,
-	private_zones_ns_override_map_only = true,
+	use_local_forwarder = false,
+	private_zones_ns_override_map_only = false,
 	private_zones_ns_override_map = {
-			['example.com'] = {'ns1','ns2','dns','dot','doh'}
+		["example.com"] = {"ns1","ns2","dns","dot","doh"}
 	},
-	private_zones_ns_override = true,
+	private_zones_ns_override = false,
+	exclude_local_forwarder_domains = {
+		"external.example.com"
+	},
 	override_map = {
-			['something.example.com']={
-					"A",
-					{"127.0.0.1", "127.0.0.2"}
-			}
+		["something.example.com"]={
+			"A",
+			{"127.0.0.1", "127.0.0.2"}
+		}
 	},
 	regex_map = {
-			['^(mail|smtp|imap|smtps|smtp)\\..*$']={
-					"CNAME",
-					{"mailserver.example.com"}
-			},
-			['^(dns|dot|doh|ns[0-9])\\..*$']={
-					"A",
-					{"127.0.0.1"}
-			}
+		["^(mail|smtp|imap|smtps|smtp)\\..*$"]={
+			"CNAME",
+			{"mailserver.example.com"}
+		},
+		["^(dns|dot|doh|ns[0-9])\\..*$"]={
+			"A",
+			{"127.0.0.1"}
+		}
 	},
 	default_ttl = 900,
 
 	-- Malware Filter Options
-	use_dnsbl = true, -- If you want to preresolve with DNSBL files (.list|.txt) in the dnsbl.d directory
-	use_ipbl = true, -- If you want to postresolve with IPBL files (.list|.txt) in the ipbl.d directory
+	use_dnsbl = false, -- If you want to preresolve with DNSBL files (.list|.txt) in the dnsbl.d directory
+	use_ipbl = false, -- If you want to postresolve with IPBL files (.list|.txt) in the ipbl.d directory
 }

@@ -38,12 +38,10 @@ return {
 		["^(mail|smtp|imap|smtps|smtp)\\..*$"]={
 			qtype="CNAME",
 			content={"mailserver.example.com"},
-			resolver="192.168.0.1:53"
 		},
 		["^(dns|dot|doh|ns[0-9])\\..*$"]={
 			qtype="A",
 			content={"127.0.0.1"},
-			resolver=nil -- This will go to the root resolvers
 		}
 	},
 	default_ttl = 900,

@@ -387,50 +387,52 @@ local function preresolve_ns(dq)
 
 	if not g.options.private_zones_ns_override then return false end
 
-	if dq.qtype == pdns.NS then
-		local qname = newDN(tostring(dq.qname))
-		local modified = false
-		for i, domain in ipairs(local_domain_overrides_t) do
-			local parent_dn = newDN(domain)
+	if dq.qtype ~= pdns.NS then
+		return false
+	end
 
-			if qname:isPartOf(parent_dn) then
-				local new_ns = {}
-				local ns_override_auto
-				local ns_override_map
-				if g.options.private_zones_ns_override_prefixes
-					and not g.options.private_zones_ns_override_map_only then
-					ns_override_auto = f.table_len(g.options.private_zones_ns_override_prefixes) > 1
-				end
-				if g.options.private_zones_ns_override_map then
-					if f.table_len(g.options.private_zones_ns_override_map) >= 1 then
-						ns_override_map = f.table_contains_key(g.options.private_zones_ns_override_map, domain)
-					end
-				end
-				if ns_override_map then
-					for dom, s_list in pairs(g.options.private_zones_ns_override_map) do
-						-- p == prefix, d == domain
-						if dom == domain then
-							for i, suffix in ipairs(s_list) do
-								table.insert(new_ns, suffix)
-							end
-							break
-						end
-					end
-				elseif ns_override_auto then
-					new_ns = g.options.private_zones_ns_override_prefixes
-				elseif not g.options.private_zones_ns_override_map_only then
-					new_ns = {
-						"ns1",
-						"ns2",
-						"dns"
-					}
-				end
-				for i, ns in ipairs(new_ns) do
-					dq:addAnswer(pdns.NS, ns .. "." .. domain, 300)
-					if not modified then modified = true end
-				end
-				if modified == true then return modified end
+	local qname = newDN(tostring(dq.qname))
+	local modified = false
+	for i, domain in ipairs(local_domain_overrides_t) do
+		local parent_dn = newDN(domain)
+
+		if qname:isPartOf(parent_dn) then
+			local new_ns = {}
+			local ns_override_auto
+			local ns_override_map
+			if g.options.private_zones_ns_override_prefixes
+				and not g.options.private_zones_ns_override_map_only then
+				ns_override_auto = f.table_len(g.options.private_zones_ns_override_prefixes) > 1
 			end
+			if g.options.private_zones_ns_override_map then
+				if f.table_len(g.options.private_zones_ns_override_map) >= 1 then
+					ns_override_map = f.table_contains_key(g.options.private_zones_ns_override_map, domain)
+				end
+			end
+			if ns_override_map then
+				for dom, s_list in pairs(g.options.private_zones_ns_override_map) do
+					-- p == prefix, d == domain
+					if dom == domain then
+						for i, suffix in ipairs(s_list) do
+							table.insert(new_ns, suffix)
+						end
+						break
+					end
+				end
+			elseif ns_override_auto then
+				new_ns = g.options.private_zones_ns_override_prefixes
+			elseif not g.options.private_zones_ns_override_map_only then
+				new_ns = {
+					"ns1",
+					"ns2",
+					"dns"
+				}
+			end
+			for i, ns in ipairs(new_ns) do
+				dq:addAnswer(pdns.NS, ns .. "." .. domain, 300)
+				if not modified then modified = true end
+			end
+			if modified == true then return modified end
 		end
 	end
 

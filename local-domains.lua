@@ -110,6 +110,7 @@ local function postresolve_one_to_one(dq)
 	local result_dq = {}
 	local update_dq = false
 	local client_addr = dq.remoteaddr
+	local cname_chain_str = nil
 
 	for dr_index, dr in ipairs(dq_records) do
 		local dr_content = dr:getContent()
@@ -129,7 +130,7 @@ local function postresolve_one_to_one(dq)
 		-- Call function without raising exception to parent process
 		local ok, dr_ca = pcall(newCA, dr_content)
 		if not ok then
-			table.insert(result_dq, dr)
+			-- table.insert(result_dq, dr)
 			goto continue
 		else
 			local dr_ca_str = dr_ca:toString()

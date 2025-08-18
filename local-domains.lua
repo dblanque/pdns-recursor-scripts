@@ -284,6 +284,10 @@ local function preresolve_regex(dq)
 			-- If it's a CNAME Replacement, only allow one value.
 			if pdns[dq_type] == pdns.CNAME then
 				dq.followupFunction="followCNAMERecords"
+				pdnslog(
+					"Will do followCNAMERecords and postresolve_one_to_one.",
+					pdns.loglevels.Debug
+				)
 				dq.udpCallback="postresolve_one_to_one"
 				break
 			end

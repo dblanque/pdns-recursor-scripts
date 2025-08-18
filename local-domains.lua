@@ -42,6 +42,7 @@ local function preoutQueryCnameChain(dq)
 		local dq_records = dq:getRecords()
 		for dr_index, dr in ipairs(dq_records) do
 			local dr_content = dr:getContent()
+			pdnslog(dr_content:toString())
 			if not dr_content then
 				goto continue
 			end
@@ -245,7 +246,7 @@ local function replace_content(dq, dq_override)
 		dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
-			-- dq.followupFunction="followCNAMERecords"
+			dq.followupFunction="followCNAMERecords"
 			dq.data["cname_chain"] = true
 			return "cname"
 		end

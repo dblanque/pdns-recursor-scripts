@@ -37,24 +37,6 @@ local function is_internal_domain(dq, check_main)
 	)
 end
 
-function preoutQueryCnameChain(dq)
-	if not dq.data or not dq.data.cname_chain then
-		return false
-	end
-
-	pdnslog(dq.qname:toString())
-	local dq_records = dq:getRecords()
-	for dr_index, dr in ipairs(dq_records) do
-		local dr_content = dr:getContent()
-		if not dr_content then
-			goto continue
-		end
-		pdnslog(dr_content:toString())
-		::continue::
-	end
-	return true
-end
-
 local function is_excluded_from_local(dq)
 	local excl_exact = g.options.exclude_local_forwarder_domains_re
 	local excl_patterns = g.options.exclude_local_forwarder_domains_re
@@ -255,7 +237,7 @@ local function replace_content(dq, dq_override)
 	return true
 end
 
-local cnameReturnOnReplace = true
+local cnameReturnOnReplace = false
 
 local function preresolve_override(dq)
 	local fn_debug = g.options.debug_pre_override

@@ -140,7 +140,3 @@ function maintenance(dq)
 	end
 	return false
 end
-
-function preoutquery(dq)
-	return preoutQueryCnameChain(dq)
-end

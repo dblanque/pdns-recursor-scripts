@@ -14,6 +14,7 @@ require "ip-translate"
 local local_domain_overrides=newDS()
 local local_domain_overrides_t={}
 local local_whitelist_ds = newDS()
+local local_service_port = g.options.local_service_port or 53
 
 -- Populate whitelist
 if g.options.exclude_local_forwarder_domains then
@@ -294,6 +295,7 @@ local function preresolve_regex(dq)
 			if pdns[dq_type] == pdns.CNAME then
 				-- dq.followupFunction="followCNAMERecords"
 				dq.followupFunction="udpQueryResponse"
+				dq.udpQueryDest=newCA("127.0.0.1:" .. tostring(local_service_port))
 				dq.udpCallback="postresolve_one_to_one"
 				break
 			end

@@ -42,19 +42,6 @@ function preoutQueryCnameChain(dq)
 		return false
 	end
 
-	pdnslog(dq.qname:toString())
-	local dq_records = dq:getRecords()
-	for dr_index, dr in ipairs(dq_records) do
-		local dr_content = dr:getContent()
-		pdnslog(dr_content:toString())
-		if not dr_content then
-			goto continue
-		end
-		dq.followupFunction="udpQueryResponse"
-		dq.udpQueryDest = newCA("10.10.10.1:53")
-		dq.udpQuery = "DOMAIN " .. dr_content:toString()
-		::continue::
-	end
 	return true
 end
 

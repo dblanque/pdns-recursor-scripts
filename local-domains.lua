@@ -258,7 +258,7 @@ local function replace_content(dq, dq_override)
 	return true
 end
 
-local cnameReturnOnReplace = true
+local cnameReturnOnReplace = false
 
 local function preresolve_override(dq)
 	local fn_debug = g.options.debug_pre_override

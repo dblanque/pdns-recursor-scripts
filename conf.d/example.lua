@@ -25,20 +25,23 @@ return {
 	exclude_local_forwarder_domains = {
 		"external.example.com"
 	},
+	exclude_local_forwarder_domains_re = {
+		"^(sub1|sub2).example.com$"
+	},
 	override_map = {
 		["something.example.com"]={
-			"A",
-			{"127.0.0.1", "127.0.0.2"}
+			qtype="A",
+			content={"127.0.0.1", "127.0.0.2"}
 		}
 	},
 	regex_map = {
 		["^(mail|smtp|imap|smtps|smtp)\\..*$"]={
-			"CNAME",
-			{"mailserver.example.com"}
+			qtype="CNAME",
+			content={"mailserver.example.com"},
 		},
 		["^(dns|dot|doh|ns[0-9])\\..*$"]={
-			"A",
-			{"127.0.0.1"}
+			qtype="A",
+			content={"127.0.0.1"},
 		}
 	},
 	default_ttl = 900,

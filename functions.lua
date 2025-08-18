@@ -49,9 +49,15 @@ function f.table_len(T)
 	return count
 end
 
-function f.table_to_str(T, SEP)
+function f.table_to_str(T, SEP, CALLBACK)
+	if not SEP then
+		SEP = ","
+	end
 	local s = ""
 	for _, v in pairs(T) do
+		if CALLBACK then
+			v = CALLBACK(v)
+		end
 		if _ == 1 then
 			s = tostring(v)
 		else

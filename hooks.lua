@@ -67,16 +67,32 @@ for i, k in ipairs(g.postresolve_index) do
 end
 
 function preresolve(dq)
+	-- Initialize persistent data table
+	if not dq.data then
+		dq.data = {}
+	end
+
 	for index, f_name in ipairs(g.preresolve_index) do
 		local pre_r_f = g.preresolve_functions[f_name]
+		local wants_postresolve = dq.data["cname_chain"] or false
 		if not pre_r_f then
-			mainlog("preresolve f() Function Index Mis-match: "..f_name, pdns.loglevels.Warning)
+			pdnslog("preresolve f() Function Index Mis-match: "..f_name, pdns.loglevels.Warning)
 			goto continue
 		end
-		mainlog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
+		pdnslog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
 		local result = pre_r_f(dq)
-		if result == true then return result end
+		if result == true and not wants_postresolve then return result end
 		::continue::
+	end
+	if dq.data then
+		pdnslog(
+			"DQ Data CNAME Chain " .. tostring(dq.data.cname_chain),
+			pdns.loglevels.Debug
+		)
+		if dq.data.cname_chain then
+			cname_override_patch(dq)
+			return true
+		end
 	end
 	return false
 end
@@ -85,13 +101,13 @@ function postresolve(dq)
 	for index, f_name in ipairs(g.postresolve_index) do
 		local post_r_f = g.postresolve_functions[f_name]
 		if not post_r_f then
-			mainlog(
+			pdnslog(
 				"postresolve f() Function Index Mis-match: " .. f_name,
 				pdns.loglevels.Warning
 			)
 			goto continue
 		end
-		mainlog("postresolve f(): " .. f_name, pdns.loglevels.Debug)
+		pdnslog("postresolve f(): " .. f_name, pdns.loglevels.Debug)
 		local result = post_r_f(dq)
 		if result == true then return result end
 		::continue::

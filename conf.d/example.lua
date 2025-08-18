@@ -22,7 +22,7 @@ return {
 	},
 	private_zones_ns_override = false,
 	exclude_local_forwarder_domains = {
-		"external.example.com",
+		"external.example.com"
 	},
 	override_map = {
 		["something.example.com"]={

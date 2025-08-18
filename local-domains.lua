@@ -296,8 +296,8 @@ local function preresolve_regex(dq)
 			if pdns[dq_type] == pdns.CNAME then
 				-- First set YOUR followup function
 				dq.followupFunction = "followCNAMERecords"
-				break
 				overridden = false
+				break
 			else
 				overridden = true
 			end

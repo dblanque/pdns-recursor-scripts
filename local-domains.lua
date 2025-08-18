@@ -307,9 +307,9 @@ local function preresolve_regex(dq)
 				dq.udpQuery = "DOMAIN "..dq.qname:toString()
 				break
 			end
-			if not overridden then overridden = true end
 		end
 
+		return true
 		pdnslog(
 			"preresolve_regex(): REGEX Overridden Result: " .. tostring(overridden),
 			pdns.loglevels.Debug

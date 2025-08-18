@@ -90,6 +90,7 @@ function preresolve(dq)
 			pdns.loglevels.Debug
 		)
 		if dq.data.cname_chain then
+			cname_override_patch(dq)
 			return true
 		end
 	end

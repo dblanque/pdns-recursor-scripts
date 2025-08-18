@@ -45,15 +45,16 @@ local function is_internal_domain(dq, check_main)
 end
 
 local function is_excluded_from_local(dq)
-	if (
-		not g.options.exclude_local_forwarder_domains and
-		not g.options.exclude_local_forwarder_domains_re
-	) then
+	local excl_exact = g.options.exclude_local_forwarder_domains_re
+	local excl_patterns = g.options.exclude_local_forwarder_domains_re
+	if not excl_exact and not excl_patterns then
 		return false
 	end
-	for i, pattern in ipairs(g.options.exclude_local_forwarder_domains_re) do
-		if re.match(dq.qname:toString(), pattern) then
-			return true
+	if excl_patterns then
+		for i, pattern in ipairs(excl_patterns) do
+			if re.match(dq.qname:toString(), pattern) then
+				return true
+			end
 		end
 	end
 	return local_whitelist_ds:check(dq.qname)

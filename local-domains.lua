@@ -39,6 +39,7 @@ end
 
 local function preoutQueryCnameChain(dq)
 	if dq.data.cname_chain then
+		pdnslog(dq.qname:toString())
 		local dq_records = dq:getRecords()
 		for dr_index, dr in ipairs(dq_records) do
 			local dr_content = dr:getContent()

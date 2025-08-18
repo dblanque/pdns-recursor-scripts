@@ -368,6 +368,7 @@ local function preresolve_regex(dq)
 end
 
 local function preresolve_ns(dq)
+	pdnslog(f.table_to_str(dq:getPolicyTags(), ", "))
 	if dq.qtype ~= pdns.NS then
 		return false
 	end
@@ -399,7 +400,6 @@ local function preresolve_ns(dq)
 		),
 		pdns.loglevels.Debug
 	)
-	pdnslog(pdns.NS .. " should not be " .. dq.qtype)
 	local modified = false
 	local override_map = g.options.private_zones_ns_override_map
 	local override_prefixes = g.options.private_zones_ns_override_prefixes

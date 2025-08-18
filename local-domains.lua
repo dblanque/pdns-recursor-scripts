@@ -240,7 +240,6 @@ local function postresolve_cname_local_override_patch(dq)
 			has_cname = true
 		elseif record.type == pdns.NS then
 			has_ns = true
-			break
 		end
 	end
 

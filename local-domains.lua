@@ -249,11 +249,8 @@ local function preresolve_override(dq)
 		end
 	end
 
-	local did_one_to_one = postresolve_one_to_one(dq)
-	return overridden or did_one_to_one
+	return overridden or postresolve(dq)
 end
-
-
 
 local function preresolve_regex(dq)
 	-- do not pre-resolve if not in our domains
@@ -304,7 +301,7 @@ local function preresolve_regex(dq)
 			-- If it's a CNAME Replacement, only allow one value.
 			if pdns[dq_type] == pdns.CNAME then
 				dq.followupFunction="udpQueryResponse"
-				dq.udpCallback="gotdomaindetails"
+				dq.udpCallback="postresolve"
 				dq.udpQueryDest=newCA("127.0.0.1:5555")
 				dq.udpQuery = "DOMAIN "..dq.qname:toString()
 				break
@@ -455,8 +452,7 @@ local function preresolve_rpr(dq)
 		end
 	end
 
-	local did_one_to_one = postresolve_one_to_one(dq)
-	return set_internal_reverse_proxy or did_one_to_one
+	return set_internal_reverse_proxy or postresolve(dq)
 end
 
 -- Add preresolve functions to table, ORDER MATTERS

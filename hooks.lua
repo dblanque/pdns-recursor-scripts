@@ -132,8 +132,5 @@ function maintenance(dq)
 end
 
 function preoutquery(dq)
-	if preoutQueryCnameChain then
-		return preoutQueryCnameChain(dq)
-	end
-	return false
+	return preoutQueryCnameChain(dq)
 end

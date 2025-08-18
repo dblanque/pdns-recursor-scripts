@@ -51,8 +51,8 @@ end
 
 function f.table_to_str(T, SEP)
 	local s = ""
-	for _ in pairs(T) do
-		s = tostring(s) .. SEP .. _
+	for _, v in pairs(T) do
+		s = tostring(s) .. SEP .. v
 	end
 	return s
 end

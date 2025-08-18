@@ -53,6 +53,20 @@ local function is_excluded_from_local(dq)
 	return local_whitelist_ds:check(dq.qname)
 end
 
+local function log_record_content(record_content)
+	if not record_content then
+		pdnslog(
+			"No DNSR Content for " .. dq.qname:toString(),
+			pdns.loglevels.Debug
+		)
+	else
+		pdnslog(
+			"DNSR Content: " .. record_content,
+			pdns.loglevels.Debug
+		)
+	end
+end
+
 -- loads contents of a file line by line into the given table
 local function loadDSFile(filename, suffixMatchGroup, domainTable)
 	if f.fileExists(filename) then
@@ -114,33 +128,27 @@ local function postresolve_one_to_one(dq)
 
 	for _, record in ipairs(dq_records) do
 		local record_content = record:getContent()
+		log_record_content(record_content, fn_debug)
 		if not record_content then
-			if fn_debug then
-				pdnslog(
-					"No DNSR Content for " .. dq.qname:toString(),
-					pdns.loglevels.Debug
-				)
-			end
 			goto continue
-		else
-			if fn_debug then
-				pdnslog(
-					"DNSR Content: " .. record_content,
-					pdns.loglevels.Debug
-				)
-			end
 		end
 
 		-- Call function without raising exception to parent process
 		-- CA = ComboAddress Object
 		local ok, record_ca = pcall(newCA, record_content)
 		if not ok then
+			--[[
+			If it's a CNAME then the last CNAME of the Chain should be
+			used for all A/AAAA Records, and the complete chain should be
+			shown in the response.
+			]]
 			if record.type == pdns.CNAME then
 				prev_cname = record_content
 			end
 			table.insert(result_dq, record)
 			goto continue
 		else
+			-- Convert ComboAddress to str
 			local record_addr = record_ca:toString()
 			if fn_debug then
 				pdnslog(
@@ -215,21 +223,21 @@ local function postresolve_one_to_one(dq)
 
 	if not update_dq then
 		return false
-	else
-		dq:setRecords(result_dq)
-		pdnslog(
-			string.format(
-				"postresolve_one_to_one(): Result %s",
-				f.table_to_str(
-					result_dq,
-					", ",
-					function (dr) return dr:getContent() end
-				)
-			),
-			pdns.loglevels.Debug
-		)
-		return true
 	end
+
+	dq:setRecords(result_dq)
+	pdnslog(
+		string.format(
+			"postresolve_one_to_one(): Result %s",
+			f.table_to_str(
+				result_dq,
+				", ",
+				function (dr) return dr:getContent() end
+			)
+		),
+		pdns.loglevels.Debug
+	)
+	return true
 end
 
 local function replace_content(dq, dq_override)
@@ -275,16 +283,15 @@ local function preresolve_override(dq)
 			pdns.loglevels.Debug
 		)
 		return false
-	else
-		pdnslog(
-			string.format(
-				"preresolve_override(): Executing Override for external record %s",
-				dq.qname:toString()
-			),
-			pdns.loglevels.Debug
-		)
 	end
 
+	pdnslog(
+		string.format(
+			"preresolve_override(): Executing Override for external record %s",
+			dq.qname:toString()
+		),
+		pdns.loglevels.Debug
+	)
 	local qname = f.qname_remove_trailing_dot(dq)
 	local replaced = false
 	if f.table_contains_key(g.options.override_map, qname) then
@@ -322,16 +329,15 @@ local function preresolve_regex(dq)
 			pdns.loglevels.Debug
 		)
 		return false
-	else
-		pdnslog(
-			string.format(
-				"preresolve_regex(): Executing regex pre-resolve for external record %s",
-				dq.qname:toString()
-			),
-			pdns.loglevels.Debug
-		)
 	end
 
+	pdnslog(
+		string.format(
+			"preresolve_regex(): Executing regex pre-resolve for external record %s",
+			dq.qname:toString()
+		),
+		pdns.loglevels.Debug
+	)
 	local qname = f.qname_remove_trailing_dot(dq)
 	local overridden = false
 	local replaced = false
@@ -361,11 +367,19 @@ local function preresolve_regex(dq)
 end
 
 local function preresolve_ns(dq)
-	-- do not pre-resolve if not in our domains
+	if not g.options.private_zones_ns_override then
+		return false
+	end
+
 	if is_excluded_from_local(dq) then
 		return false
 	end
 
+	if dq.qtype ~= pdns.NS then
+		return false
+	end
+	
+	-- do not pre-resolve if not in our domains
 	if not is_internal_domain(dq, true) then
 		pdnslog(
 			string.format(
@@ -375,42 +389,39 @@ local function preresolve_ns(dq)
 			pdns.loglevels.Debug
 		)
 		return false
-	else
-		pdnslog(
-			string.format(
-				"preresolve_ns(): Executing NS pre-resolve for external record %s",
-				dq.qname:toString()
-			),
-			pdns.loglevels.Debug
-		)
 	end
 
-	if not g.options.private_zones_ns_override then return false end
+	pdnslog(
+		string.format(
+			"preresolve_ns(): Executing NS pre-resolve for external record %s",
+			dq.qname:toString()
+		),
+		pdns.loglevels.Debug
+	)
 
-	if dq.qtype ~= pdns.NS then
-		return false
-	end
-
-	local qname = newDN(tostring(dq.qname))
 	local modified = false
+	local override_map = g.options.private_zones_ns_override_map
+	local override_prefixes = g.options.private_zones_ns_override_prefixes
+	local map_only = g.options.private_zones_ns_override_map_only
+
 	for i, domain in ipairs(local_domain_overrides_t) do
 		local parent_dn = newDN(domain)
 
-		if qname:isPartOf(parent_dn) then
+		if dq.qname:isPartOf(parent_dn) then
 			local new_ns = {}
 			local ns_override_auto
 			local ns_override_map
-			if g.options.private_zones_ns_override_prefixes
-				and not g.options.private_zones_ns_override_map_only then
-				ns_override_auto = f.table_len(g.options.private_zones_ns_override_prefixes) > 1
+			if override_prefixes
+				and not map_only then
+				ns_override_auto = f.table_len(override_prefixes) > 1
 			end
-			if g.options.private_zones_ns_override_map then
-				if f.table_len(g.options.private_zones_ns_override_map) >= 1 then
-					ns_override_map = f.table_contains_key(g.options.private_zones_ns_override_map, domain)
+			if override_map then
+				if f.table_len(override_map) >= 1 then
+					ns_override_map = f.table_contains_key(override_map, domain)
 				end
 			end
 			if ns_override_map then
-				for dom, s_list in pairs(g.options.private_zones_ns_override_map) do
+				for dom, s_list in pairs(override_map) do
 					-- p == prefix, d == domain
 					if dom == domain then
 						for i, suffix in ipairs(s_list) do
@@ -420,8 +431,8 @@ local function preresolve_ns(dq)
 					end
 				end
 			elseif ns_override_auto then
-				new_ns = g.options.private_zones_ns_override_prefixes
-			elseif not g.options.private_zones_ns_override_map_only then
+				new_ns = override_prefixes
+			elseif not map_only then
 				new_ns = {
 					"ns1",
 					"ns2",

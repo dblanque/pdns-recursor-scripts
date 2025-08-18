@@ -88,26 +88,22 @@ local function postresolve_one_to_one(dq)
 	end
 
 	if not is_internal_domain(dq, true) then
-		if debug then
-			pdnslog(
-				string.format(
-					"postresolve_one_to_one(): Skipping One-to-One for external record %s",
-					dq.qname:toString()
-				),
-				pdns.loglevels.Debug
-			)
-		end
+		pdnslog(
+			string.format(
+				"postresolve_one_to_one(): Skipping One-to-One for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
 		return false
 	else
-		if debug then
-			pdnslog(
-				string.format(
-					"postresolve_one_to_one(): Executing One-to-One for external record %s",
-					dq.qname:toString()
-				),
-				pdns.loglevels.Debug
-			)
-		end
+		pdnslog(
+			string.format(
+				"postresolve_one_to_one(): Executing One-to-One for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
 	end
 
 	local dq_records = dq:getRecords()
@@ -147,11 +143,13 @@ local function postresolve_one_to_one(dq)
 				local _tgt_netmask = newNetmask(_tgt)
 				local _tgt_prefix_len = tonumber(_tgt:sub(-2))
 				-- Compare Prefix length for both netmasks
-				if not _src_prefix_len == _tgt_prefix_len and debug then
-					pdnslog(
-						"One-to-One Source and Target must have same mask.",
-						pdns.loglevels.Error
-					)
+				if not _src_prefix_len == _tgt_prefix_len then
+					if debug then
+						pdnslog(
+							"One-to-One Source and Target must have same mask.",
+							pdns.loglevels.Error
+						)
+					end
 					goto continue
 				end
 
@@ -339,7 +337,7 @@ local function preresolve_regex(dq)
 		::continue::
 	end
 
-	return overridden
+	return overridden or postresolve(dq)
 end
 
 local function preresolve_ns(dq)

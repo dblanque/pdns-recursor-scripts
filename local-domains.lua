@@ -37,7 +37,7 @@ local function is_internal_domain(dq, check_main)
 	)
 end
 
-local function preoutQueryCnameChain(dq)
+function preoutQueryCnameChain(dq)
 	if not dq.data.cname_chain then
 		return false
 	end

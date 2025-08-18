@@ -230,7 +230,7 @@ local function replace_content(dq, dq_override)
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
 			dq.followupFunction="followCNAMERecords"
-			return false
+			return nil
 		end
 	end
 	return true
@@ -267,6 +267,9 @@ local function preresolve_override(dq)
 		for key, value in pairs(g.options.override_map) do
 			if key ~= qname then goto continue end
 			replaced = replace_content(dq, value)
+			if replaced == nil then
+				break
+			end
 			::continue::
 		end
 	end
@@ -312,6 +315,9 @@ local function preresolve_regex(dq)
 			"preresolve_regex(): REGEX Overridden Result: " .. tostring(overridden),
 			pdns.loglevels.Debug
 		)
+		if replaced == nil then
+			break
+		end
 		::continue::
 	end
 

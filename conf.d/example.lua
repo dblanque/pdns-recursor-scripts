@@ -3,7 +3,6 @@
 -- Recommended names: overrides.lua || settings.lua || conf_dnsbl.lua || conf_local.lua
 return {
 	-- Local Domain Override Options
-	local_service_port = 53,
 	main_domain = "example.com",
 	use_one_to_one = false,
     one_to_one_subnets = {

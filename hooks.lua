@@ -67,6 +67,7 @@ for i, k in ipairs(g.postresolve_index) do
 end
 
 function preresolve(dq)
+	dq.data = {}
 	for index, f_name in ipairs(g.preresolve_index) do
 		local pre_r_f = g.preresolve_functions[f_name]
 		if not pre_r_f then

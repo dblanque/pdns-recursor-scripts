@@ -200,7 +200,7 @@ local function postresolve_one_to_one(dq)
 		dq:setRecords(result_dq)
 		pdnslog(
 			string.format(
-				"Query Result %s",
+				"postresolve_one_to_one(): Result %s",
 				f.table_to_str(
 					result_dq,
 					", ",

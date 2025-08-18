@@ -108,12 +108,16 @@ local function postresolve_one_to_one(dq)
 			local dr_ca_str = dr_ca:toString()
 			pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
 	
+			-- Check if record is within 1-to-1 requested subnets
 			for _src, _opts in pairs(g.options.one_to_one_subnets) do
 				local _tgt = _opts["target"]
+				-- Make source netmask
 				local _src_netmask = newNetmask(_src)
 				local _src_prefix_len = tonumber(_src:sub(-2))
+				-- Make target netmask
 				local _tgt_netmask = newNetmask(_tgt)
 				local _tgt_prefix_len = tonumber(_tgt:sub(-2))
+				-- Compare Prefix length for both netmasks
 				if not _src_prefix_len == _tgt_prefix_len then
 					pdnslog(
 						"One-to-One Source and Target must have same mask.",
@@ -123,6 +127,8 @@ local function postresolve_one_to_one(dq)
 
 				pdnslog("One-to-One Source: " .. _src, pdns.loglevels.Debug)
 				pdnslog("One-to-One Target: " .. _tgt, pdns.loglevels.Debug)
+
+				-- Parse ACLs for 1-to-1
 				local _acl = _opts["acl"]
 				local _acl_masks = newNMG()
 				_acl_masks:addMasks(_acl)
@@ -137,14 +143,13 @@ local function postresolve_one_to_one(dq)
 						"Source Netmask Matched: " .. dr_ca_str,
 						pdns.loglevels.Debug
 					)
-					-- If client ip is in One-to-One acl
+					-- If client ip is in 1-to-1 ACLs...
 					if _acl_masks:match(client_addr) then
 						local new_dr = translate_ip(
 							dr_ca_str,
 							_src,
 							_tgt
 						)
-						-- local new_dr = dr_ca_str:gsub("^".._src, _tgt)
 						update_dq = true
 						dr:changeContent(new_dr)
 					end

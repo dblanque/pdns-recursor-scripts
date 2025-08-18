@@ -288,7 +288,6 @@ local function preresolve_regex(dq)
 
 		local dq_values = dq_override[2]
 		local dq_ttl = dq_override[3] or g.options.default_ttl
-		local function add_answer()
 		for i, v in ipairs(dq_values) do
 			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 			-- If it's a CNAME Replacement, only allow one value.

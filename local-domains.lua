@@ -50,9 +50,6 @@ function preoutQueryCnameChain(dq)
 		if not dr_content then
 			goto continue
 		end
-		dq.followupFunction="udpQueryResponse"
-		dq.udpQueryDest = newCA("10.10.10.1:53")
-		dq.udpQuery = "DOMAIN " .. dr_content:toString()
 		::continue::
 	end
 	return true
@@ -250,7 +247,10 @@ local function replace_content(dq, dq_override)
 		dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
-			dq.followupFunction="followCNAMERecords"
+			-- dq.followupFunction="followCNAMERecords"
+			dq.followupFunction="udpQueryResponse"
+			dq.udpQueryDest = newCA("127.0.0.1:5555")
+			dq.udpQuery = "DOMAIN " .. dr_content:toString()
 			dq.data["cname_chain"] = true
 			return "cname"
 		end

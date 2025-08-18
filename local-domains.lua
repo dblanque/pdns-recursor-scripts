@@ -249,7 +249,7 @@ function cname_override_patch(dq)
 	pdnslog(tostring(has_cname))
 	pdnslog(tostring(has_ns))
 	if has_cname and has_ns then
-		dq:setRecords(dq_records[cname_index])
+		dq:setRecords({dq_records[cname_index]})
 		return true
 	end
 	return false

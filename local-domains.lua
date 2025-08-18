@@ -229,7 +229,11 @@ local function replace_content(dq, dq_override)
 		dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
-			dq.followupFunction="followCNAMERecords"
+			-- dq.followupFunction="followCNAMERecords"
+			dq.followupFunction="udpQueryResponse"
+			dq.udpCallback="gotdomaindetails"
+			dq.udpQueryDest=newCA("10.10.10.1:53")
+			dq.udpQuery = "DOMAIN "..dq.qname:toString()
 			dq.data["cname_chain"] = true
 			return "cname"
 		end
@@ -238,6 +242,25 @@ local function replace_content(dq, dq_override)
 end
 
 local cnameReturnOnReplace = true
+function gotdomaindetails(dq)
+    pdnslog("gotdomaindetails called, got: "..dq.udpAnswer)
+
+    if(dq.udpAnswer == "0")
+    then
+        pdnslog("This domain needs no filtering, not looking up this domain")
+        dq.followupFunction=""
+        return false
+    end
+    pdnslog("Domain might need filtering for some users")
+    dq.variable = true -- disable packet cache
+
+    local data={}
+    data["domaindetails"]= dq.udpAnswer
+    dq.data=data
+    dq.udpQuery="IP "..dq.remoteaddr:toString()
+    dq.udpCallback=""
+    return false
+end
 
 local function preresolve_override(dq)
 	local fn_debug = g.options.debug_pre_override

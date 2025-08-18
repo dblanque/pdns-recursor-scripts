@@ -244,14 +244,7 @@ local function preresolve_override(dq)
 	return overridden or did_one_to_one
 end
 
-local function postCNAMEFollowup(dq)
-    -- This will be called AFTER CNAME following is complete
-    if dq.followupPrefix == "CNAMEHandler" then
-        postresolve_one_to_one(dq)
-        return true
-    end
-    return false
-end
+
 
 local function preresolve_regex(dq)
 	-- do not pre-resolve if not in our domains
@@ -302,13 +295,14 @@ local function preresolve_regex(dq)
 			-- If it's a CNAME Replacement, only allow one value.
 			if pdns[dq_type] == pdns.CNAME then
 				-- First set YOUR followup function
-				dq.followupFunction = "postCNAMEFollowup"
-				-- Then tell PowerDNS to do CNAME following
-				dq.followupPrefix = "CNAMEHandler"
+				dq.followupFunction = "followCNAMERecords"
+				break
+				overridden = false
+			else
+				overridden = true
 			end
 		end
 
-		overridden = true
 		pdnslog(
 			"preresolve_regex(): REGEX Overridden Result: " .. tostring(overridden),
 			pdns.loglevels.Debug

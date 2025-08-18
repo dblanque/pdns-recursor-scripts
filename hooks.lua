@@ -98,6 +98,7 @@ end
 
 function logUdpAnswer(dq)
 	pdnslog(dq.qname:toString())
+	return true
 end
 
 function postresolve(dq)

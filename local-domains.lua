@@ -296,6 +296,7 @@ local function preresolve_regex(dq)
 			if pdns[dq_type] == pdns.CNAME then
 				dq.rcode = 0
 				dq.followupFunction = "followCNAMERecords"
+				dq.variable = true
 				break
 			end
 		end

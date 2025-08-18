@@ -234,7 +234,7 @@ local function replace_content(dq, dq_override)
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
 			dq.followupFunction="postresolve"
-			dq.data={cname_chain=true}
+			dq.data["cname_chain"] = true
 			return "cname"
 		end
 	end

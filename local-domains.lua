@@ -14,6 +14,9 @@ local_domain_overrides=newDS()
 local_domain_overrides_t={}
 
 local function get_client(dq)
+	if not dq then
+		error("get_client requires a dq object.")
+	end
 	return dq.remoteaddr
 end
 
@@ -84,7 +87,7 @@ local function postresolve_one_to_one(dq)
 	local dq_records = dq:getRecords()
 	local result_dq = {}
 	local update_dq = false
-	local client_addr = get_client()
+	local client_addr = get_client(dq)
 
 	for dr_index, dr in ipairs(dq_records) do
 		pdnslog(

@@ -110,9 +110,9 @@ local function postresolve_one_to_one(dq)
 			for _src, _opts in pairs(g.options.one_to_one_subnets) do
 				local _tgt = _opts["target"]
 				local _src_netmask = newNetmask(_src)
-				local _src_prefix_len = tonumber(string.sub(_src, -2))
+				local _src_prefix_len = tonumber(_src:sub(-2))
 				local _tgt_netmask = newNetmask(_tgt)
-				local _tgt_prefix_len = tonumber(string.sub(_tgt, -2))
+				local _tgt_prefix_len = tonumber(_tgt:sub(-2))
 				if not _src_prefix_len == _tgt_prefix_len then
 					pdnslog(
 						"One-to-One Source and Target must have same mask.",
@@ -144,7 +144,7 @@ local function postresolve_one_to_one(dq)
 							pdns.loglevels.Debug
 						)
 						pdnslog(
-							"Masked Net: " .. _src_ca:truncate(_src_prefix_len):toString(),
+							"Masked Net: " .. _src_ca:toString(),
 							pdns.loglevels.Debug
 						)
 						local new_dr = dr_ca_str:gsub("^".._src, _tgt)

@@ -245,6 +245,11 @@ local function preresolve_override(dq)
 	return overridden or did_one_to_one
 end
 
+local function localFollowCNAMERecords(dq)
+	followCNAMERecords(dq)
+	return postresolve_one_to_one(dq)
+end
+
 local function preresolve_regex(dq)
 	-- do not pre-resolve if not in our domains
 	if is_excluded_from_local(dq) then
@@ -294,9 +299,10 @@ local function preresolve_regex(dq)
 			-- If it's a CNAME Replacement, only allow one value.
 			if pdns[dq_type] == pdns.CNAME then
 				-- dq.followupFunction="followCNAMERecords"
-				dq.followupFunction="udpQueryResponse"
-				dq.udpQueryDest=newCA("127.0.0.1:" .. tostring(local_service_port))
-				dq.udpCallback="postresolve_one_to_one"
+				dq.followupFunction="localFollowCNAMERecords"
+				-- dq.followupFunction="udpQueryResponse"
+				-- dq.udpQueryDest=newCA("127.0.0.1:" .. tostring(local_service_port))
+				-- dq.udpCallback="postresolve_one_to_one"
 				break
 			end
 		end

@@ -83,6 +83,10 @@ function preresolve(dq)
 		if result == true then return result end
 		::continue::
 	end
+	pdnslog(
+		"DQ Data CNAME Chain " .. tostring(dq.data["cname_chain"]),
+		pdns.loglevels.Debug
+	)
 	return false
 end
 

@@ -110,10 +110,6 @@ local function postresolve_one_to_one(dq)
 	local result_dq = {}
 	local update_dq = false
 	local client_addr = dq.remoteaddr
-	pdnslog(
-		"DQ Data CNAME Chain " .. tostring(dq.data["cname_chain"]),
-		pdns.loglevels.Debug
-	)
 
 	for dr_index, dr in ipairs(dq_records) do
 		local dr_content = dr:getContent()

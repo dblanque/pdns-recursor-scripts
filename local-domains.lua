@@ -247,7 +247,11 @@ local function replace_content(dq, dq_override)
 		dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
-			dq.followupFunction="followCNAMERecords"
+			-- dq.followupFunction="followCNAMERecords"
+			dq.followupFunction="udpQueryResponse"
+			dq.udpQueryDest = newCA("127.0.0.1:5555")
+			dq.udpCallback = "logUdpAnswer"
+			dq.udpQuery = "DOMAIN " .. v
 			dq.data["cname_chain"] = true
 			return "cname"
 		end

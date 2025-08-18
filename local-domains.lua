@@ -272,11 +272,20 @@ local function preresolve_regex(dq)
 	local qname = f.qname_remove_trailing_dot(dq)
 	local overridden = false
 	for key, value in pairs(g.options.regex_map) do
-		if not re.match(qname, key) then goto continue end
+		if not re.match(qname, key) then
+			goto continue
+		end
+
 		local dq_override = value
 		local dq_type = dq_override[1]
 		local dq_replace_any = dq_override[4]
-		if not valid_type_replace(dq.qtype, pdns[dq_type]) and not dq_replace_any then goto continue end
+		if (
+			not valid_type_replace(dq.qtype, pdns[dq_type]) and
+			not dq_replace_any
+		) then
+			goto continue
+		end
+
 		local dq_values = dq_override[2]
 		local dq_ttl = dq_override[3] or g.options.default_ttl
 		local function add_answer()
@@ -293,9 +302,12 @@ local function preresolve_regex(dq)
 				break
 			end
 		end
-		
-		if not overridden then overridden = true end
-		pdnslog("preresolve_regex(): REGEX Overridden Result: "..tostring(overridden), pdns.loglevels.Debug)
+
+		overridden = true
+		pdnslog(
+			"preresolve_regex(): REGEX Overridden Result: " .. tostring(overridden),
+			pdns.loglevels.Debug
+		)
 		::continue::
 	end
 

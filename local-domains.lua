@@ -113,8 +113,9 @@ local function postresolve_one_to_one(dq)
 			pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
 	
 			for _src, _opts in pairs(g.options.one_to_one_subnets) do
+				local _tgt = _opts["target"]
 				local _src_netmask = newNetmask(_src)
-				local _tgt_netmask = newNetmask(_opts["target"])
+				local _tgt_netmask = newNetmask(_tgt)
 				if not _src:sub(-2) == _tgt:sub(-2) then
 					pdnslog(
 						"One-to-One Source and Target must have same mask.",

@@ -229,7 +229,7 @@ local function replace_content(dq, dq_override)
 		dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
-			dq.followupFunction="cnamePostResolve"
+			dq.followupFunction="postresolve"
 			dq.data["cname_chain"] = true
 			return "cname"
 		end
@@ -238,9 +238,6 @@ local function replace_content(dq, dq_override)
 end
 
 local cnameReturnOnReplace = false
-local function cnamePostResolve(dq)
-	postresolve(dq)
-end
 
 local function preresolve_override(dq)
 	-- do not pre-resolve if not in our domains

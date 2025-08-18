@@ -533,14 +533,22 @@ if g.options.use_local_forwarder then
 	end
 
 	if g.options.use_one_to_one then
-		mainlog("Loading postresolve_one_to_one into post-resolve functions.", pdns.loglevels.Notice)
+		mainlog(
+			"Loading postresolve_one_to_one into post-resolve "..
+			"functions.",
+			pdns.loglevels.Notice
+		)
 		f.addHookFunction("post", "postresolve_one_to_one", postresolve_one_to_one)
 	end
 
 	mainlog("Loading preresolve_rpr into pre-resolve functions.", pdns.loglevels.Notice)
 	f.addHookFunction("pre", "preresolve_rpr", preresolve_rpr)
 
-	mainlog("Loading postresolve_cname_local_override_patch into post-resolve functions.", pdns.loglevels.Notice)
+	mainlog(
+		"Loading postresolve_cname_local_override_patch into post-resolve "..
+		"functions.",
+		pdns.loglevels.Notice
+	)
 	f.addHookFunction(
 		"post",
 		"postresolve_cname_local_override_patch",

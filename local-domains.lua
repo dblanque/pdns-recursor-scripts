@@ -213,6 +213,29 @@ local function postresolve_one_to_one(dq)
 	end
 end
 
+local function replace_content(dq, dq_override)
+	local dq_type = dq_override["qtype"]
+	local dq_replace_any = dq_override["replace_any"]
+	if (
+		not valid_type_replace(dq.qtype, pdns[dq_type]) and
+		not dq_replace_any
+	) then
+		return false
+	end
+
+	local dq_values = dq_override["content"]
+	local dq_ttl = dq_override["ttl"] or g.options.default_ttl
+	for i, v in ipairs(dq_values) do
+		dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
+		-- If it's a CNAME Replacement, only allow one value.
+		if pdns[dq_type] == pdns.CNAME then
+			dq.followupFunction="followCNAMERecords"
+			return false
+		end
+	end
+	return true
+end
+
 local function preresolve_override(dq)
 	-- do not pre-resolve if not in our domains
 	if is_excluded_from_local(dq) then
@@ -239,37 +262,16 @@ local function preresolve_override(dq)
 	end
 
 	local qname = f.qname_remove_trailing_dot(dq)
-	local overridden = false
+	local replaced = false
 	if f.table_contains_key(g.options.override_map, qname) then
 		for key, value in pairs(g.options.override_map) do
 			if key ~= qname then goto continue end
-			local dq_override = value
-			local dq_type = dq_override["qtype"]
-			local dq_replace_any = dq_override["replace_any"]
-			if (
-				not valid_type_replace(dq.qtype, pdns[dq_type]) and
-				not dq_replace_any
-			) then
-				goto continue
-			end
-
-			local dq_values = dq_override["content"]
-			local dq_resolver = dq_override["resolver"]
-			local dq_ttl = dq_override["ttl"] or g.options.default_ttl
-			for i, v in ipairs(dq_values) do
-				dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
-				-- If it's a CNAME Replacement, only allow one value.
-				if pdns[dq_type] == pdns.CNAME then
-					dq.followupFunction="followCNAMERecords"
-					break
-				end
-			end
-			if not overridden then overridden = true end
+			replaced = replace_content(dq, value)
 			::continue::
 		end
 	end
 
-	return overridden or postresolve(dq)
+	return replaced or postresolve(dq)
 end
 
 local function preresolve_regex(dq)
@@ -299,37 +301,13 @@ local function preresolve_regex(dq)
 
 	local qname = f.qname_remove_trailing_dot(dq)
 	local overridden = false
+	local replaced = false
 	for key, value in pairs(g.options.regex_map) do
 		if not re.match(qname, key) then
 			goto continue
 		end
 
-		local dq_override = value
-		local dq_type = dq_override["qtype"]
-		local dq_replace_any = dq_override["replace_any"]
-		if (
-			not valid_type_replace(dq.qtype, pdns[dq_type]) and
-			not dq_replace_any
-		) then
-			goto continue
-		end
-
-		local dq_values = dq_override["content"]
-		local dq_resolver = dq_override["resolver"]
-		local dq_ttl = dq_override["ttl"] or g.options.default_ttl
-		for i, v in ipairs(dq_values) do
-			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
-			-- If it's a CNAME Replacement, only allow one value.
-			if pdns[dq_type] == pdns.CNAME then
-				dq.followupFunction="udpQueryResponse"
-				dq.udpCallback="postresolve"
-				dq.udpQueryDest=newCA(dq_resolver)
-				dq.udpQuery = "DOMAIN "..dq.qname:toString()
-				break
-			end
-			if not overridden then overridden = true end
-		end
-
+		replaced = replace_content(dq, value)
 		pdnslog(
 			"preresolve_regex(): REGEX Overridden Result: " .. tostring(overridden),
 			pdns.loglevels.Debug
@@ -337,7 +315,7 @@ local function preresolve_regex(dq)
 		::continue::
 	end
 
-	return overridden or postresolve(dq)
+	return replaced or postresolve(dq)
 end
 
 local function preresolve_ns(dq)

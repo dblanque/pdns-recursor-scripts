@@ -8,7 +8,7 @@ else
 	mainlog("pdns-recursor-scripts local-domains.lua requires rex_pcre or rex_pcre2 to be installed", pdns.loglevels.Error)
 	return false
 end
-ip_nat = require "ip-translate"
+require "ip-translate"
 
 -- List of private domains
 local_domain_overrides=newDS()

@@ -202,7 +202,7 @@ local function postresolve_one_to_one(dq)
 						update_dq = true
 						if prev_cname then
 							pdnslog(record.name:toString())
-							record.name = prev_cname
+							record.name = newDN(prev_cname)
 							pdnslog(record.name:toString())
 						end
 						record:changeContent(new_addr)

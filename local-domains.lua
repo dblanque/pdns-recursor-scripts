@@ -226,13 +226,11 @@ local function replace_content(dq, dq_override)
 	local dq_values = dq_override["content"]
 	local dq_ttl = dq_override["ttl"] or g.options.default_ttl
 	for i, v in ipairs(dq_values) do
+		dq:addRecord(pdns[dq_type], v, 0, dq_ttl) -- Type, Value, Place, TTL
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
-			dq.followupFunction="followCNAMERecords"
-			dq.followupDomain=v
+			-- dq.followupFunction="followCNAMERecords"
 			return "cname"
-		else
-			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		end
 	end
 	return true

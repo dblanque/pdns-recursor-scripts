@@ -21,6 +21,7 @@ return {
 		["example.com"] = {"ns1","ns2","dns","dot","doh"}
 	},
 	private_zones_ns_override = false,
+	exclude_main_domain_from_irp = true,
 	exclude_local_forwarder_domains = {
 		"external.example.com"
 	},

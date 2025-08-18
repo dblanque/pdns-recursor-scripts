@@ -94,13 +94,16 @@ end
 
 local function postresolve_one_to_one(dq)
 	local function fn_debug(msg)
-		if not g.options.debug_post_one_to_one then return end
+		if not g.options.debug_post_one_to_one then
+			return
+		end
 		pdnslog(msg, pdns.loglevels.Debug)
 	end
 
 	if not g.options.use_one_to_one or not g.options.one_to_one_subnets then
 		return false
 	end
+
 	if is_excluded_from_local(dq) then
 		return false
 	end
@@ -228,6 +231,9 @@ local function postresolve_cname_local_override_patch(dq)
 	local dq_records = dq:getRecords()
 	local has_cname = false
 	local has_ns = false
+	if not dq_records then
+		return false
+	end
 
 	for _, record in ipairs(dq_records) do
 		if record.type == pdns.CNAME then
@@ -237,9 +243,12 @@ local function postresolve_cname_local_override_patch(dq)
 			break
 		end
 	end
+
 	if has_cname and has_ns then
 		dq:setRecords(dq_records[1])
+		return true
 	end
+	return false
 end
 
 local function replace_content(dq, dq_override)

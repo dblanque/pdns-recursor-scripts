@@ -130,13 +130,17 @@ local function postresolve_one_to_one(dq)
 				)
 			end
 		end
+
 		-- Call function without raising exception to parent process
-		local ok, record_ca = pcall(newCA, record_content)
-		-- CA = ComboAddress
+		local ok, record_ca
+		-- CA = ComboAddress Object
+		if record.type == pdns.CNAME then
+			prev_cname = record.name
+		else
+			ok, record_ca = pcall(newCA, record_content)
+		end
+
 		if not ok then
-			if record.type == pdns.CNAME then
-				prev_cname = record.name
-			end
 			-- table.insert(result_dq, record)
 			goto continue
 		else

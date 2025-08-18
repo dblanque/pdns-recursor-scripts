@@ -84,10 +84,15 @@ function preresolve(dq)
 		if result == true and not wants_postresolve then return result end
 		::continue::
 	end
-	pdnslog(
-		"DQ Data CNAME Chain " .. tostring(dq.data["cname_chain"]),
-		pdns.loglevels.Debug
-	)
+	if dq.data then
+		pdnslog(
+			"DQ Data CNAME Chain " .. tostring(dq.data.cname_chain),
+			pdns.loglevels.Debug
+		)
+		if dq.data.cname_chain then
+			return true
+		end
+	end
 	return false
 end
 

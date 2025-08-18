@@ -132,16 +132,11 @@ local function postresolve_one_to_one(dq)
 		end
 
 		-- Call function without raising exception to parent process
-		if record.type == pdns.CNAME then
-			prev_cname = record.name
-			table.insert(result_dq, record)
-			pdnslog(prev_cname:toString())
-			goto continue
-		end
-		
 		-- CA = ComboAddress Object
 		local ok, record_ca = pcall(newCA, record_content)
 		if not ok then
+			pdnslog(record_content)
+			table.insert(result_dq, record)
 			goto continue
 		else
 			local record_addr = record_ca:toString()

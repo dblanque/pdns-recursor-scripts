@@ -90,11 +90,6 @@ local function postresolve_one_to_one(dq)
 	local client_addr = get_client(dq)
 
 	for dr_index, dr in ipairs(dq_records) do
-		pdnslog(
-			"Client Address: " .. client_addr:toString(),
-			pdns.loglevels.Debug
-		)
-
 		local dr_content = dr:getContent()
 		if not dr_content then
 			pdnslog(
@@ -115,8 +110,10 @@ local function postresolve_one_to_one(dq)
 			for _src, _opts in pairs(g.options.one_to_one_subnets) do
 				local _tgt = _opts["target"]
 				local _src_netmask = newNetmask(_src)
+				local _src_prefix_len = _src:sub(-2)
 				local _tgt_netmask = newNetmask(_tgt)
-				if not _src:sub(-2) == _tgt:sub(-2) then
+				local _tgt_prefix_len = _tgt:sub(-2)
+				if not _src_prefix_len == _tgt_prefix_len then
 					pdnslog(
 						"One-to-One Source and Target must have same mask.",
 						pdns.loglevels.Error
@@ -141,6 +138,14 @@ local function postresolve_one_to_one(dq)
 					)
 					-- If client ip is in One-to-One acl
 					if _acl_masks:match(client_addr) then
+						pdnslog(
+							"Client Address Matched: " .. client_addr:toString(),
+							pdns.loglevels.Debug
+						)
+						pdnslog(
+							"Masked Net: " .. _src_netmask:getMaskedNetwork():truncate(_src_prefix_len):toString(),
+							pdns.loglevels.Debug
+						)
 						local new_dr = dr_ca_str:gsub("^".._src, _tgt)
 						update_dq = true
 						dr:changeContent(new_dr)

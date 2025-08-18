@@ -254,12 +254,26 @@ function gotdomaindetails(dq)
     pdnslog("Domain might need filtering for some users")
     dq.variable = true -- disable packet cache
 
-    local data={}
     data["domaindetails"]= dq.udpAnswer
-    dq.data=data
+    dq.data["cname_chain_data"]=data
     dq.udpQuery="IP "..dq.remoteaddr:toString()
-    dq.udpCallback=""
+    dq.udpCallback="gotipdetails"
     return false
+end
+
+function gotipdetails(dq)
+    dq.followupFunction=""
+    pdnslog("So status of IP is "..dq.udpAnswer.." and status of domain is "..dq.data.domaindetails)
+
+    if(dq.data.domaindetails=="1" and dq.udpAnswer=="1")
+    then
+        pdnslog("IP wants filtering and domain is of the filtered kind")
+        dq:addAnswer(pdns.CNAME, "blocked.powerdns.com")
+        return true
+    else
+        pdnslog("Returning false (normal resolution should proceed, for this user)")
+        return false
+    end
 end
 
 local function preresolve_override(dq)

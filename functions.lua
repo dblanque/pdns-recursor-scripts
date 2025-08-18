@@ -50,6 +50,9 @@ function f.table_len(T)
 end
 
 function f.table_to_str(T, SEP)
+	if not SEP then
+		SEP = ","
+	end
 	local s = ""
 	for _, v in pairs(T) do
 		if _ == 1 then

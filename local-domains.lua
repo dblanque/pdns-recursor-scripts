@@ -38,7 +38,7 @@ local function is_internal_domain(dq, check_main)
 end
 
 local function is_excluded_from_local(dq)
-	local excl_exact = g.options.exclude_local_forwarder_domains_re
+	local excl_exact = g.options.exclude_local_forwarder_domains
 	local excl_patterns = g.options.exclude_local_forwarder_domains_re
 	if not excl_exact and not excl_patterns then
 		return false

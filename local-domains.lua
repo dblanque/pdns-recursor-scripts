@@ -1,13 +1,14 @@
 -- Split DNS Filtering
 -- Add your Default Web Reverse Proxy or desired Internal IP for your domain.
 if f.isModuleAvailable("rex_pcre") then
-	re = require("rex_pcre")
+	re = require "rex_pcre"
 elseif f.isModuleAvailable("rex_pcre2") then
-	re = require("rex_pcre2")
+	re = require "rex_pcre2"
 else
 	mainlog("pdns-recursor-scripts local-domains.lua requires rex_pcre or rex_pcre2 to be installed", pdns.loglevels.Error)
 	return false
 end
+ip_nat = require "ip-translate"
 
 -- List of private domains
 local_domain_overrides=newDS()
@@ -138,20 +139,12 @@ local function postresolve_one_to_one(dq)
 					)
 					-- If client ip is in One-to-One acl
 					if _acl_masks:match(client_addr) then
-						local _src_ca = _src_netmask:getMaskedNetwork()
-						pdnslog(
-							"Client Address Matched: " .. client_addr:toString(),
-							pdns.loglevels.Debug
+						local new_dr = ip_nat.translate_ip(
+							dr_ca_str,
+							_src,
+							_tgt
 						)
-						pdnslog(
-							"Masked Net: " .. _src_ca:toString(),
-							pdns.loglevels.Debug
-						)
-						pdnslog(
-							"Masked Net (RAW): " .. tostring(_src_ca:getRaw()),
-							pdns.loglevels.Debug
-						)
-						local new_dr = dr_ca_str:gsub("^".._src, _tgt)
+						-- local new_dr = dr_ca_str:gsub("^".._src, _tgt)
 						update_dq = true
 						dr:changeContent(new_dr)
 					end

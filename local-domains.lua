@@ -11,8 +11,16 @@ end
 require "ip-translate"
 
 -- List of private domains
-local_domain_overrides=newDS()
-local_domain_overrides_t={}
+local local_domain_overrides=newDS()
+local local_domain_overrides_t={}
+local local_whitelist_ds = newDS()
+
+-- Populate whitelist
+if g.options.exclude_local_forwarder_domains then
+	for _, domain in ipairs(g.options.exclude_local_forwarder_domains) do
+		local_whitelist_ds:add(newDN(domain))
+	end
+end
 
 local function get_client(dq)
 	if not dq then
@@ -34,6 +42,13 @@ local function is_internal_domain(dq, check_main)
 		local_domain_overrides:check(dq.qname) or
 		dq.qname:isPartOf(main_domain_qname)
 	)
+end
+
+local function is_excluded_from_local(dq)
+	if not g.options.exclude_local_forwarder_domains then
+		return false
+	end
+	return local_whitelist_ds:check(dq.qname)
 end
 
 -- loads contents of a file line by line into the given table
@@ -63,6 +78,9 @@ end
 
 local function postresolve_one_to_one(dq)
 	if not g.options.use_one_to_one or not g.options.one_to_one_subnets then
+		return false
+	end
+	if is_excluded_from_local(dq) then
 		return false
 	end
 
@@ -175,6 +193,9 @@ end
 
 local function preresolve_override(dq)
 	-- do not pre-resolve if not in our domains
+	if is_excluded_from_local(dq) then
+		return false
+	end
 
 	if not is_internal_domain(dq, true) then
 		pdnslog(
@@ -225,6 +246,9 @@ end
 
 local function preresolve_regex(dq)
 	-- do not pre-resolve if not in our domains
+	if is_excluded_from_local(dq) then
+		return false
+	end
 
 	if not is_internal_domain(dq, true) then
 		pdnslog(
@@ -275,6 +299,9 @@ end
 
 local function preresolve_ns(dq)
 	-- do not pre-resolve if not in our domains
+	if is_excluded_from_local(dq) then
+		return false
+	end
 
 	if not is_internal_domain(dq, true) then
 		pdnslog(
@@ -350,6 +377,9 @@ end
 -- this function is hooked before resolving starts
 local function preresolve_rpr(dq)
 	-- do not pre-resolve if not in our domains
+	if is_excluded_from_local(dq) then
+		return false
+	end
 
 	if not is_internal_domain(dq, true) then
 		pdnslog(

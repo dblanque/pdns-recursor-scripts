@@ -278,7 +278,10 @@ local function preresolve_override(dq)
 		end
 	end
 
-	return replaced or postresolve(dq)
+	if replaced then
+		postresolve(dq)
+	end
+	return replaced
 end
 
 local function preresolve_regex(dq)
@@ -326,7 +329,10 @@ local function preresolve_regex(dq)
 		::continue::
 	end
 
-	return replaced or postresolve(dq)
+	if replaced then
+		postresolve(dq)
+	end
+	return replaced
 end
 
 local function preresolve_ns(dq)
@@ -439,10 +445,10 @@ local function preresolve_rpr(dq)
 		)
 	end
 
-	local set_internal_reverse_proxy = false
+	local replaced = false
 	if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
 		if g.options.internal_reverse_proxy_v4 then
-			set_internal_reverse_proxy = true
+			replaced = true
 			dq:addAnswer(
 				pdns.A,
 				g.options.internal_reverse_proxy_v4,
@@ -453,7 +459,7 @@ local function preresolve_rpr(dq)
 
 	if dq.qtype == pdns.AAAA or dq.qtype == pdns.ANY then
 		if g.options.internal_reverse_proxy_v6 then
-			set_internal_reverse_proxy = true
+			replaced = true
 			dq:addAnswer(
 				pdns.AAAA,
 				g.options.internal_reverse_proxy_v6,
@@ -462,7 +468,10 @@ local function preresolve_rpr(dq)
 		end
 	end
 
-	return set_internal_reverse_proxy or postresolve(dq)
+	if replaced then
+		postresolve(dq)
+	end
+	return replaced
 end
 
 -- Add preresolve functions to table, ORDER MATTERS

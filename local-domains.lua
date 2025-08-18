@@ -244,6 +244,8 @@ local function postresolve_cname_local_override_patch(dq)
 		end
 	end
 
+	pdnslog(has_cname)
+	pdnslog(has_ns)
 	if has_cname and has_ns then
 		dq:setRecords(dq_records[1])
 		return true

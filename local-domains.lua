@@ -254,7 +254,7 @@ function gotdomaindetails(dq)
     pdnslog("Domain might need filtering for some users")
     dq.variable = true -- disable packet cache
 
-    data["domaindetails"]= dq.udpAnswer
+    dq.data["domain_details"]= dq.udpAnswer
     dq.data["cname_chain_data"]=data
     dq.udpQuery="IP "..dq.remoteaddr:toString()
     dq.udpCallback="gotipdetails"
@@ -263,9 +263,9 @@ end
 
 function gotipdetails(dq)
     dq.followupFunction=""
-    pdnslog("So status of IP is "..dq.udpAnswer.." and status of domain is "..dq.data.domaindetails)
+    pdnslog("So status of IP is "..dq.udpAnswer.." and status of domain is "..dq.data.domain_details)
 
-    if(dq.data.domaindetails=="1" and dq.udpAnswer=="1")
+    if(dq.data.domain_details=="1" and dq.udpAnswer=="1")
     then
         pdnslog("IP wants filtering and domain is of the filtered kind")
         dq:addAnswer(pdns.CNAME, "blocked.powerdns.com")

@@ -280,24 +280,22 @@ local function preresolve_regex(dq)
 		local dq_values = dq_override[2]
 		local dq_ttl = dq_override[3] or g.options.default_ttl
 		local function add_answer()
-			for i, v in ipairs(dq_values) do
-				dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
-				-- If it's a CNAME Replacement, only allow one value.
-				if pdns[dq_type] == pdns.CNAME then
-					dq.followupFunction="followCNAMERecords"
-					pdnslog(
-						"Will do followCNAMERecords and postresolve_one_to_one.",
-						pdns.loglevels.Debug
-					)
-					dq.udpCallback="postresolve_one_to_one"
-					break
-				end
+		for i, v in ipairs(dq_values) do
+			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
+			-- If it's a CNAME Replacement, only allow one value.
+			if pdns[dq_type] == pdns.CNAME then
+				dq.followupFunction="followCNAMERecords"
+				pdnslog(
+					"Will do followCNAMERecords and postresolve_one_to_one.",
+					pdns.loglevels.Debug
+				)
+				dq.udpCallback="postresolve_one_to_one"
+				break
 			end
 		end
-		add_answer()
-
-		pdnslog("preresolve_regex(): REGEX Overridden Result: "..tostring(overridden), pdns.loglevels.Debug)
+		
 		if not overridden then overridden = true end
+		pdnslog("preresolve_regex(): REGEX Overridden Result: "..tostring(overridden), pdns.loglevels.Debug)
 		::continue::
 	end
 

@@ -93,7 +93,7 @@ function preresolve(dq)
 		"DQ Data CNAME Chain " .. tostring(dq.data.cname_chain),
 		pdns.loglevels.Debug
 	)
-	if wants_postresolve then
+	if dq.data.cname_chain then
 		cname_override_patch(dq)
 		return true
 	end

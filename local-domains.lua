@@ -169,7 +169,7 @@ local function postresolve_one_to_one(dq)
 				local _tgt_netmask = newNetmask(_tgt)
 				local _tgt_prefix_len = tonumber(_tgt:sub(-2))
 				-- Compare Prefix length for both netmasks
-				if not _src_prefix_len == _tgt_prefix_len then
+				if _src_prefix_len ~= _tgt_prefix_len then
 					fn_debug("One-to-One Source and Target must have same mask.")
 					goto continue
 				end

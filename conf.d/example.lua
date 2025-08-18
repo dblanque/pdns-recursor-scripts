@@ -25,6 +25,9 @@ return {
 	exclude_local_forwarder_domains = {
 		"external.example.com"
 	},
+	exclude_local_forwarder_domains_re = {
+		"^(sub1|sub2).example.com$"
+	},
 	override_map = {
 		["something.example.com"]={
 			"A",

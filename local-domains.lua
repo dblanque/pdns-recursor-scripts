@@ -45,8 +45,16 @@ local function is_internal_domain(dq, check_main)
 end
 
 local function is_excluded_from_local(dq)
-	if not g.options.exclude_local_forwarder_domains then
+	if (
+		not g.options.exclude_local_forwarder_domains and
+		not g.options.exclude_local_forwarder_domains_re
+	) then
 		return false
+	end
+	for i, pattern in ipairs(g.options.exclude_local_forwarder_domains_re) do
+		if re.match(dq.qname:toString(), pattern) then
+			return true
+		end
 	end
 	return local_whitelist_ds:check(dq.qname)
 end
@@ -294,7 +302,10 @@ local function preresolve_regex(dq)
 			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 			-- If it's a CNAME Replacement, only allow one value.
 			if pdns[dq_type] == pdns.CNAME then
-				dq.followupFunction = "followCNAMERecords"
+				dq.followupFunction="udpQueryResponse"
+				dq.udpCallback="gotdomaindetails"
+				dq.udpQueryDest=newCA("127.0.0.1:5555")
+				dq.udpQuery = "DOMAIN "..dq.qname:toString()
 				break
 			end
 			if not overridden then overridden = true end

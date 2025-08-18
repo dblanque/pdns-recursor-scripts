@@ -302,7 +302,7 @@ local function preresolve_regex(dq)
 			if pdns[dq_type] == pdns.CNAME then
 				dq.followupFunction="udpQueryResponse"
 				dq.udpCallback="postresolve"
-				dq.udpQueryDest=newCA("127.0.0.1:5555")
+				-- dq.udpQueryDest=newCA("127.0.0.1:53")
 				dq.udpQuery = "DOMAIN "..dq.qname:toString()
 				break
 			end

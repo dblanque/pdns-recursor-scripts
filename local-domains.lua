@@ -250,6 +250,7 @@ local function replace_content(dq, dq_override)
 			-- dq.followupFunction="followCNAMERecords"
 			dq.followupFunction="udpQueryResponse"
 			dq.udpQueryDest = newCA("127.0.0.1:5555")
+			dq.udpCallback = "logUdpAnswer"
 			dq.udpQuery = "DOMAIN " .. v
 			dq.data["cname_chain"] = true
 			return "cname"

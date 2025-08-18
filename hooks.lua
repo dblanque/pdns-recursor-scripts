@@ -96,6 +96,10 @@ function preresolve(dq)
 	return false
 end
 
+function logUdpAnswer(dq)
+	pdnslog(dq.qname:toString())
+end
+
 function postresolve(dq)
 	for index, f_name in ipairs(g.postresolve_index) do
 		local post_r_f = g.postresolve_functions[f_name]

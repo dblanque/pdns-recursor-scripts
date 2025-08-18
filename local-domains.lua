@@ -201,7 +201,7 @@ local function postresolve_one_to_one(dq)
 	else
 		dq:setRecords(result_dq)
 		pdnslog(
-			string.format("Query Result %s", f.table_to_str(result_dq)),
+			string.format("Query Result %s", f.table_to_str(result_dq, ", ")),
 			pdns.loglevels.Debug
 		)
 		return true

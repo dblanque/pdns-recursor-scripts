@@ -45,6 +45,7 @@ local function preoutQueryCnameChain(dq)
 			if not dr_content then
 				goto continue
 			end
+			dq.followupFunction="udpQueryResponse"
 			dq.udpQueryDest = newCA("10.10.10.1:53")
 			dq.udpQuery = "DOMAIN " .. dr_content:toString()
 			::continue::

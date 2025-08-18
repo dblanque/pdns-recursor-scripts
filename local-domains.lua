@@ -122,18 +122,6 @@ local function postresolve_one_to_one(dq)
 						pdns.loglevels.Error
 					)
 				end
-				if not _src_netmask:empty() then
-					pdnslog(
-						"One-to-One Source must be a CIDR without bits set.",
-						pdns.loglevels.Error
-					)
-				end
-				if not _tgt_netmask:empty() then
-					pdnslog(
-						"One-to-One Target must be a CIDR without bits set.",
-						pdns.loglevels.Error
-					)
-				end
 
 				pdnslog("One-to-One Source: " .. _src, pdns.loglevels.Debug)
 				pdnslog("One-to-One Target: " .. _tgt, pdns.loglevels.Debug)

@@ -138,6 +138,7 @@ local function postresolve_one_to_one(dq)
 			if record.type == pdns.CNAME then
 				prev_cname = record_content
 			end
+			table.insert(result_dq, record)
 			goto continue
 		else
 			local record_addr = record_ca:toString()

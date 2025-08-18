@@ -93,7 +93,11 @@ local function valid_type_replace(dq_type, replace_type)
 end
 
 local function postresolve_one_to_one(dq)
-	local fn_debug = g.options.debug_post_one_to_one
+	local function fn_debug(msg)
+		if not g.options.debug_post_one_to_one then return end
+		pdnslog(msg, pdns.loglevels.Debug)
+	end
+
 	if not g.options.use_one_to_one or not g.options.one_to_one_subnets then
 		return false
 	end
@@ -128,7 +132,7 @@ local function postresolve_one_to_one(dq)
 
 	for _, record in ipairs(dq_records) do
 		local record_content = record:getContent()
-		log_record_content(record_content, fn_debug)
+		log_record_content(record_content, g.options.debug_post_one_to_one)
 		if not record_content then
 			goto continue
 		end
@@ -150,12 +154,7 @@ local function postresolve_one_to_one(dq)
 		else
 			-- Convert ComboAddress to str
 			local record_addr = record_ca:toString()
-			if fn_debug then
-				pdnslog(
-					"DNSR ComboAddress: " .. record_addr,
-					pdns.loglevels.Debug
-				)
-			end
+			fn_debug("DNSR ComboAddress: " .. record_addr)
 
 			-- Check if record is within 1-to-1 requested subnets
 			for _src, _opts in pairs(g.options.one_to_one_subnets) do
@@ -168,38 +167,23 @@ local function postresolve_one_to_one(dq)
 				local _tgt_prefix_len = tonumber(_tgt:sub(-2))
 				-- Compare Prefix length for both netmasks
 				if not _src_prefix_len == _tgt_prefix_len then
-					if fn_debug then
-						pdnslog(
-							"One-to-One Source and Target must have same mask.",
-							pdns.loglevels.Error
-						)
-					end
+					fn_debug("One-to-One Source and Target must have same mask.")
 					goto continue
 				end
 
-				if fn_debug then
-					pdnslog("One-to-One Source: " .. _src, pdns.loglevels.Debug)
-					pdnslog("One-to-One Target: " .. _tgt, pdns.loglevels.Debug)
-				end
+				fn_debug("One-to-One Source: " .. _src)
+				fn_debug("One-to-One Target: " .. _tgt)
 				-- Parse ACLs for 1-to-1
 				local _acl = _opts["acl"]
 				local _acl_masks = newNMG()
 				_acl_masks:addMasks(_acl)
-				if fn_debug then
-					pdnslog(
-						"One-to-One will only apply to: " .. f.table_to_str(_acl, ", "),
-						pdns.loglevels.Debug
-					)
-				end
+				fn_debug(
+					"One-to-One will only apply to: " .. f.table_to_str(_acl, ", ")
+				)
 	
-				-- If source subnet string matches
+				-- If source subnet matches
 				if _src_netmask:match(record_addr) then
-					if fn_debug then
-						pdnslog(
-							"Source Netmask Matched: " .. record_addr,
-							pdns.loglevels.Debug
-						)
-					end
+					fn_debug("Source Netmask Matched: " .. record_addr)
 					-- If client ip is in 1-to-1 ACLs...
 					if _acl_masks:match(client_addr) then
 						local new_addr = translate_ip(

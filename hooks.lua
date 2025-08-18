@@ -74,25 +74,28 @@ function preresolve(dq)
 
 	for index, f_name in ipairs(g.preresolve_index) do
 		local pre_r_f = g.preresolve_functions[f_name]
-		local wants_postresolve = dq.data["cname_chain"] or false
+		local wants_postresolve = dq.data.cname_chain or false
 		if not pre_r_f then
-			pdnslog("preresolve f() Function Index Mis-match: "..f_name, pdns.loglevels.Warning)
+			pdnslog(
+				"preresolve f() Function Index Mis-match: " .. f_name,
+				pdns.loglevels.Warning
+			)
 			goto continue
 		end
 		pdnslog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
 		local result = pre_r_f(dq)
-		if result == true and not wants_postresolve then return result end
+		if result == true and not wants_postresolve then
+			return result
+		end
 		::continue::
 	end
-	if dq.data then
-		pdnslog(
-			"DQ Data CNAME Chain " .. tostring(dq.data.cname_chain),
-			pdns.loglevels.Debug
-		)
-		if dq.data.cname_chain then
-			cname_override_patch(dq)
-			return true
-		end
+	pdnslog(
+		"DQ Data CNAME Chain " .. tostring(dq.data.cname_chain),
+		pdns.loglevels.Debug
+	)
+	if wants_postresolve then
+		cname_override_patch(dq)
+		return true
 	end
 	return false
 end

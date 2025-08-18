@@ -331,11 +331,11 @@ end
 local function preresolve_regex(dq)
 	local fn_debug = g.options.debug_pre_regex
 
-	-- do not pre-resolve if not in our domains
 	if is_excluded_from_local(dq) then
 		return false
 	end
-
+	
+	-- do not pre-resolve if not in our domains
 	if not is_internal_domain(dq, true) then
 		pdnslog(
 			string.format(

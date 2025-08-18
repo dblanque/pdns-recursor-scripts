@@ -79,6 +79,7 @@ local function valid_type_replace(dq_type, replace_type)
 end
 
 local function postresolve_one_to_one(dq)
+	local debug = g.options.debug_one_to_one
 	if not g.options.use_one_to_one or not g.options.one_to_one_subnets then
 		return false
 	end
@@ -87,22 +88,26 @@ local function postresolve_one_to_one(dq)
 	end
 
 	if not is_internal_domain(dq, true) then
-		pdnslog(
-			string.format(
-				"postresolve_one_to_one(): Skipping One-to-One for external record %s",
-				dq.qname:toString()
-			),
-			pdns.loglevels.Debug
-		)
+		if debug then
+			pdnslog(
+				string.format(
+					"postresolve_one_to_one(): Skipping One-to-One for external record %s",
+					dq.qname:toString()
+				),
+				pdns.loglevels.Debug
+			)
+		end
 		return false
 	else
-		pdnslog(
-			string.format(
-				"postresolve_one_to_one(): Executing One-to-One for external record %s",
-				dq.qname:toString()
-			),
-			pdns.loglevels.Debug
-		)
+		if debug then
+			pdnslog(
+				string.format(
+					"postresolve_one_to_one(): Executing One-to-One for external record %s",
+					dq.qname:toString()
+				),
+				pdns.loglevels.Debug
+			)
+		end
 	end
 
 	local dq_records = dq:getRecords()
@@ -113,10 +118,12 @@ local function postresolve_one_to_one(dq)
 	for dr_index, dr in ipairs(dq_records) do
 		local dr_content = dr:getContent()
 		if not dr_content then
-			pdnslog(
-				"No DNSR Content for ".. tostring(dq.qname),
-				pdns.loglevels.Debug
-			)
+			if debug then
+				pdnslog(
+					"No DNSR Content for " .. dq.qname:toString(),
+					pdns.loglevels.Debug
+				)
+			end
 			goto continue
 		end
 		-- Call function without raising exception to parent process
@@ -126,7 +133,9 @@ local function postresolve_one_to_one(dq)
 			goto continue
 		else
 			local dr_ca_str = dr_ca:toString()
-			pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
+			if debug then
+				pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
+			end
 	
 			-- Check if record is within 1-to-1 requested subnets
 			for _src, _opts in pairs(g.options.one_to_one_subnets) do
@@ -138,31 +147,37 @@ local function postresolve_one_to_one(dq)
 				local _tgt_netmask = newNetmask(_tgt)
 				local _tgt_prefix_len = tonumber(_tgt:sub(-2))
 				-- Compare Prefix length for both netmasks
-				if not _src_prefix_len == _tgt_prefix_len then
+				if not _src_prefix_len == _tgt_prefix_len and debug then
 					pdnslog(
 						"One-to-One Source and Target must have same mask.",
 						pdns.loglevels.Error
 					)
+					goto continue
 				end
 
-				pdnslog("One-to-One Source: " .. _src, pdns.loglevels.Debug)
-				pdnslog("One-to-One Target: " .. _tgt, pdns.loglevels.Debug)
-
+				if debug then
+					pdnslog("One-to-One Source: " .. _src, pdns.loglevels.Debug)
+					pdnslog("One-to-One Target: " .. _tgt, pdns.loglevels.Debug)
+				end
 				-- Parse ACLs for 1-to-1
 				local _acl = _opts["acl"]
 				local _acl_masks = newNMG()
 				_acl_masks:addMasks(_acl)
-				pdnslog(
-					"One-to-One will only apply to: " .. f.table_to_str(_acl, ", "),
-					pdns.loglevels.Debug
-				)
+				if debug then
+					pdnslog(
+						"One-to-One will only apply to: " .. f.table_to_str(_acl, ", "),
+						pdns.loglevels.Debug
+					)
+				end
 	
 				-- If source subnet string matches
 				if _src_netmask:match(dr_ca_str) then
-					pdnslog(
-						"Source Netmask Matched: " .. dr_ca_str,
-						pdns.loglevels.Debug
-					)
+					if debug then
+						pdnslog(
+							"Source Netmask Matched: " .. dr_ca_str,
+							pdns.loglevels.Debug
+						)
+					end
 					-- If client ip is in 1-to-1 ACLs...
 					if _acl_masks:match(client_addr) then
 						local new_dr = translate_ip(

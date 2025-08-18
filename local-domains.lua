@@ -110,6 +110,10 @@ local function postresolve_one_to_one(dq)
 	local result_dq = {}
 	local update_dq = false
 	local client_addr = dq.remoteaddr
+	pdnslog(
+		"DQ Data CNAME Chain " .. tostring(dq.data["cname_chain"]),
+		pdns.loglevels.Debug
+	)
 
 	for dr_index, dr in ipairs(dq_records) do
 		local dr_content = dr:getContent()
@@ -226,10 +230,11 @@ local function replace_content(dq, dq_override)
 	local dq_values = dq_override["content"]
 	local dq_ttl = dq_override["ttl"] or g.options.default_ttl
 	for i, v in ipairs(dq_values) do
-		dq:addRecord(pdns[dq_type], v, 0, dq_ttl) -- Type, Value, Place, TTL
+		dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
-			-- dq.followupFunction="followCNAMERecords"
+			dq.followupFunction="postresolve"
+			dq.data={cname_chain=true}
 			return "cname"
 		end
 	end

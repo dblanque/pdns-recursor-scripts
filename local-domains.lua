@@ -294,15 +294,13 @@ local function preresolve_regex(dq)
 			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 			-- If it's a CNAME Replacement, only allow one value.
 			if pdns[dq_type] == pdns.CNAME then
-				-- First set YOUR followup function
+				dq.rcode = 0
 				dq.followupFunction = "followCNAMERecords"
-				overridden = false
 				break
-			else
-				overridden = true
 			end
 		end
 
+		overridden = true
 		pdnslog(
 			"preresolve_regex(): REGEX Overridden Result: " .. tostring(overridden),
 			pdns.loglevels.Debug

@@ -394,7 +394,14 @@ local function preresolve_rpr(dq)
 		return false
 	end
 
-	if not is_internal_domain(dq, true) then
+	local exclude_main_domain_from_irp
+	if g.options.exclude_main_domain_from_irp == nil then
+		check_main = true
+	else
+		check_main = not g.options.exclude_main_domain_from_irp
+	end
+	if not is_internal_domain(dq, check_main)
+	then
 		pdnslog(
 			string.format(
 				"preresolve_rpr(): Skipping reverse proxy replacement pre-resolve for external record %s",

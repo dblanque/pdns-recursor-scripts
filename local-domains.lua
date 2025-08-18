@@ -139,7 +139,7 @@ local function postresolve_one_to_one(dq)
 				pdnslog("One-to-One Target: " .. _tgt, pdns.loglevels.Debug)
 				local _acl = _opts["acl"]
 				local _acl_masks = newNMG()
-				_acl_masks:addMasks(_acl_masks)
+				_acl_masks:addMasks(_acl)
 	
 				-- If source subnet string matches
 				if _src_netmask:match(dr_ca_str) then

@@ -14,7 +14,7 @@ local_domain_overrides=newDS()
 local_domain_overrides_t={}
 
 local function get_client(dq)
-	return dq.remoteaddr:toString()
+	return dq.remoteaddr
 end
 
 local function is_internal_domain(dq, check_main)
@@ -84,8 +84,14 @@ local function postresolve_one_to_one(dq)
 	local dq_records = dq:getRecords()
 	local result_dq = {}
 	local update_dq = false
+	local client_addr = get_client()
 
 	for dr_index, dr in ipairs(dq_records) do
+		pdnslog(
+			"Client Address: " .. client_addr:toString(),
+			pdns.loglevels.Debug
+		)
+
 		local dr_content = dr:getContent()
 		if not dr_content then
 			pdnslog(
@@ -133,8 +139,12 @@ local function postresolve_one_to_one(dq)
 	
 				-- If source subnet string matches
 				if _src_netmask:match(dr_ca_str) then
+					pdnslog(
+						"Source Netmask Matched: " .. dr_ca_str,
+						pdns.loglevels.Debug
+					)
 					-- If client ip is in One-to-One acl
-					if _acl_masks:match(get_client()) then
+					if _acl_masks:match(client_addr) then
 						local new_dr = dr_ca_str:gsub("^".._src, _tgt)
 						update_dq = true
 						dr:changeContent(new_dr)

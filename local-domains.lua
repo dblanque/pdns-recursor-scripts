@@ -229,16 +229,18 @@ end
 
 function cname_override_patch(dq)
 	local dq_records = dq:getRecords()
+	local cname_index = nil
 	local has_cname = false
 	local has_ns = false
 	if not dq_records then
 		return false
 	end
 
-	for _, record in ipairs(dq_records) do
-		pdnslog(record:getContent())
+	for _idx, record in ipairs(dq_records) do
+		-- This will only take the last CNAME in the chain
 		if record.type == pdns.CNAME then
 			has_cname = true
+			cname_index = _idx
 		elseif record.type == pdns.NS then
 			has_ns = true
 		end
@@ -247,7 +249,7 @@ function cname_override_patch(dq)
 	pdnslog(tostring(has_cname))
 	pdnslog(tostring(has_ns))
 	if has_cname and has_ns then
-		dq:setRecords(dq_records[1])
+		dq:setRecords(dq_records[cname_index])
 		return true
 	end
 	return false

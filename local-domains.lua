@@ -129,7 +129,7 @@ local function postresolve_one_to_one(dq)
 				local _acl_masks = newNMG()
 				_acl_masks:addMasks(_acl)
 				pdnslog(
-					"One-to-One will only apply to: " .. _acl_masks:toString(),
+					"One-to-One will only apply to: " .. f.table_to_str(_acl, ", "),
 					pdns.loglevels.Debug
 				)
 	

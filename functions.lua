@@ -47,7 +47,15 @@ function f.table_len(T)
 	local count = 0
 	for _ in pairs(T) do count = count + 1 end
 	return count
-  end
+end
+
+function f.table_to_str(T, SEP)
+	local s = ""
+	for _ in pairs(T) do
+		s = tostring(s) .. SEP .. _
+	end
+	return s
+end
 
 -- This function uses native LUA Regex, not PCRE2
 function f.is_comment(v)

@@ -130,3 +130,9 @@ function maintenance(dq)
 	end
 	return false
 end
+
+function preoutquery(dq)
+	if preoutQueryCnameChain then
+		preoutQueryCnameChain(dq)
+	end
+end

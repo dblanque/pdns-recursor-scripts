@@ -110,11 +110,11 @@ local function postresolve_one_to_one(dq)
 	local result_dq = {}
 	local update_dq = false
 	local client_addr = dq.remoteaddr
-	local cname_chain_str = nil
+	local prev_cname = nil
 
-	for dr_index, dr in ipairs(dq_records) do
-		local dr_content = dr:getContent()
-		if not dr_content then
+	for _, record in ipairs(dq_records) do
+		local record_content = record:getContent()
+		if not record_content then
 			if fn_debug then
 				pdnslog(
 					"No DNSR Content for " .. dq.qname:toString(),
@@ -124,18 +124,28 @@ local function postresolve_one_to_one(dq)
 			goto continue
 		else
 			if fn_debug then
-				pdnslog("DNSR Content: " .. dr_content, pdns.loglevels.Debug)
+				pdnslog(
+					"DNSR Content: " .. record_content,
+					pdns.loglevels.Debug
+				)
 			end
 		end
 		-- Call function without raising exception to parent process
-		local ok, dr_ca = pcall(newCA, dr_content)
+		local ok, record_ca = pcall(newCA, record_content)
+		-- CA = ComboAddress
 		if not ok then
-			-- table.insert(result_dq, dr)
+			if record.type == pdns.CNAME then
+				prev_cname = record.name
+			end
+			-- table.insert(result_dq, record)
 			goto continue
 		else
-			local dr_ca_str = dr_ca:toString()
+			local record_addr = record_ca:toString()
 			if fn_debug then
-				pdnslog("DNSR ComboAddress: " .. dr_ca_str, pdns.loglevels.Debug)
+				pdnslog(
+					"DNSR ComboAddress: " .. record_addr,
+					pdns.loglevels.Debug
+				)
 			end
 
 			-- Check if record is within 1-to-1 requested subnets
@@ -174,27 +184,30 @@ local function postresolve_one_to_one(dq)
 				end
 	
 				-- If source subnet string matches
-				if _src_netmask:match(dr_ca_str) then
+				if _src_netmask:match(record_addr) then
 					if fn_debug then
 						pdnslog(
-							"Source Netmask Matched: " .. dr_ca_str,
+							"Source Netmask Matched: " .. record_addr,
 							pdns.loglevels.Debug
 						)
 					end
 					-- If client ip is in 1-to-1 ACLs...
 					if _acl_masks:match(client_addr) then
-						local new_dr = translate_ip(
-							dr_ca_str,
+						local new_addr = translate_ip(
+							record_addr,
 							_src,
 							_tgt
 						)
 						update_dq = true
-						dr:changeContent(new_dr)
+						if prev_cname then
+							record.name = prev_cname
+						end
+						record:changeContent(new_addr)
 					end
 				end
 			end
 	
-			table.insert(result_dq, dr)
+			table.insert(result_dq, record)
 		end
 		::continue::
 	end

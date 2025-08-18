@@ -22,13 +22,6 @@ if g.options.exclude_local_forwarder_domains then
 	end
 end
 
-local function get_client(dq)
-	if not dq then
-		error("get_client requires a dq object.")
-	end
-	return dq.remoteaddr
-end
-
 local function is_internal_domain(dq, check_main)
 	local main_domain_qname = newDN(
 		tostring(g.options.main_domain or "example.com")
@@ -115,7 +108,7 @@ local function postresolve_one_to_one(dq)
 	local dq_records = dq:getRecords()
 	local result_dq = {}
 	local update_dq = false
-	local client_addr = get_client(dq)
+	local client_addr = dq.remoteaddr
 
 	for dr_index, dr in ipairs(dq_records) do
 		local dr_content = dr:getContent()
@@ -231,11 +224,18 @@ local function preresolve_override(dq)
 		for key, value in pairs(g.options.override_map) do
 			if key ~= qname then goto continue end
 			local dq_override = value
-			local dq_type = dq_override[1]
-			local dq_replace_any = dq_override[4]
-			if not valid_type_replace(dq.qtype, pdns[dq_type]) and not dq_replace_any then goto continue end
-			local dq_values = dq_override[2]
-			local dq_ttl = dq_override[3] or g.options.default_ttl
+			local dq_type = dq_override["qtype"]
+			local dq_replace_any = dq_override["replace_any"]
+			if (
+				not valid_type_replace(dq.qtype, pdns[dq_type]) and
+				not dq_replace_any
+			) then
+				goto continue
+			end
+
+			local dq_values = dq_override["content"]
+			local dq_resolver = dq_override["resolver"]
+			local dq_ttl = dq_override["ttl"] or g.options.default_ttl
 			for i, v in ipairs(dq_values) do
 				dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 				-- If it's a CNAME Replacement, only allow one value.
@@ -285,8 +285,8 @@ local function preresolve_regex(dq)
 		end
 
 		local dq_override = value
-		local dq_type = dq_override[1]
-		local dq_replace_any = dq_override[4]
+		local dq_type = dq_override["qtype"]
+		local dq_replace_any = dq_override["replace_any"]
 		if (
 			not valid_type_replace(dq.qtype, pdns[dq_type]) and
 			not dq_replace_any
@@ -294,15 +294,16 @@ local function preresolve_regex(dq)
 			goto continue
 		end
 
-		local dq_values = dq_override[2]
-		local dq_ttl = dq_override[3] or g.options.default_ttl
+		local dq_values = dq_override["content"]
+		local dq_resolver = dq_override["resolver"]
+		local dq_ttl = dq_override["ttl"] or g.options.default_ttl
 		for i, v in ipairs(dq_values) do
 			dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 			-- If it's a CNAME Replacement, only allow one value.
 			if pdns[dq_type] == pdns.CNAME then
 				dq.followupFunction="udpQueryResponse"
 				dq.udpCallback="postresolve"
-				-- dq.udpQueryDest=newCA("127.0.0.1:53")
+				dq.udpQueryDest=newCA(dq_resolver)
 				dq.udpQuery = "DOMAIN "..dq.qname:toString()
 				break
 			end

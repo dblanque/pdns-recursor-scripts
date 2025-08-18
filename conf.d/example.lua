@@ -30,18 +30,20 @@ return {
 	},
 	override_map = {
 		["something.example.com"]={
-			"A",
-			{"127.0.0.1", "127.0.0.2"}
+			qtype="A",
+			content={"127.0.0.1", "127.0.0.2"}
 		}
 	},
 	regex_map = {
 		["^(mail|smtp|imap|smtps|smtp)\\..*$"]={
-			"CNAME",
-			{"mailserver.example.com"}
+			qtype="CNAME",
+			content={"mailserver.example.com"},
+			resolver="192.168.0.1:53"
 		},
 		["^(dns|dot|doh|ns[0-9])\\..*$"]={
-			"A",
-			{"127.0.0.1"}
+			qtype="A",
+			content={"127.0.0.1"},
+			resolver=nil -- This will go to the root resolvers
 		}
 	},
 	default_ttl = 900,

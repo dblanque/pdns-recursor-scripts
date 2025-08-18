@@ -132,7 +132,7 @@ local function postresolve_one_to_one(dq)
 			if fn_debug then
 				pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
 			end
-	
+
 			-- Check if record is within 1-to-1 requested subnets
 			for _src, _opts in pairs(g.options.one_to_one_subnets) do
 				local _tgt = _opts["target"]
@@ -237,7 +237,7 @@ local function replace_content(dq, dq_override)
 	return true
 end
 
-local cnameReturnOnReplace = false
+local cnameReturnOnReplace = true
 
 local function preresolve_override(dq)
 	local fn_debug = g.options.debug_pre_override

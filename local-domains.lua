@@ -224,6 +224,24 @@ local function postresolve_one_to_one(dq)
 	return true
 end
 
+local function postresolve_cname_local_override_patch(dq)
+	local dq_records = dq:getRecords()
+	local has_cname = false
+	local has_ns = false
+
+	for _, record in ipairs(dq_records) do
+		if record.type == pdns.CNAME then
+			has_cname = true
+		else if record.type == pdns.NS then
+			has_ns = true
+			break
+		end
+	end
+	if has_cname and has_ns then
+		dq:setRecords(dq_records[1])
+	end
+end
+
 local function replace_content(dq, dq_override)
 	local dq_type = dq_override["qtype"]
 	local dq_replace_any = dq_override["replace_any"]
@@ -521,6 +539,13 @@ if g.options.use_local_forwarder then
 
 	mainlog("Loading preresolve_rpr into pre-resolve functions.", pdns.loglevels.Notice)
 	f.addHookFunction("pre", "preresolve_rpr", preresolve_rpr)
+
+	mainlog("Loading postresolve_cname_local_override_patch into post-resolve functions.", pdns.loglevels.Notice)
+	f.addHookFunction(
+		"post",
+		"postresolve_cname_local_override_patch",
+		postresolve_cname_local_override_patch
+	)
 else
 	mainlog("Local Domain Forwarder Override not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)
 end

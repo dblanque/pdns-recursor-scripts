@@ -218,7 +218,8 @@ local function preresolve_override(dq)
 		end
 	end
 
-	return overridden or postresolve_one_to_one(dq)
+	local did_one_to_one = postresolve_one_to_one(dq)
+	return overridden or did_one_to_one
 end
 
 local function preresolve_regex(dq)
@@ -267,7 +268,8 @@ local function preresolve_regex(dq)
 		::continue::
 	end
 
-	return overridden or postresolve_one_to_one(dq)
+	local did_one_to_one = postresolve_one_to_one(dq)
+	return overridden or did_one_to_one
 end
 
 local function preresolve_ns(dq)
@@ -390,7 +392,8 @@ local function preresolve_rpr(dq)
 		end
 	end
 
-	return set_internal_reverse_proxy or postresolve_one_to_one(dq)
+	local did_one_to_one = postresolve_one_to_one(dq)
+	return set_internal_reverse_proxy or did_one_to_one
 end
 
 -- Add preresolve functions to table, ORDER MATTERS

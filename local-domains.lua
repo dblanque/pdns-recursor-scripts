@@ -138,12 +138,13 @@ local function postresolve_one_to_one(dq)
 					)
 					-- If client ip is in One-to-One acl
 					if _acl_masks:match(client_addr) then
+						local _src_ca = _src_netmask:getMaskedNetwork()
 						pdnslog(
 							"Client Address Matched: " .. client_addr:toString(),
 							pdns.loglevels.Debug
 						)
 						pdnslog(
-							"Masked Net: " .. _src_netmask:truncate(_src_prefix_len):toString(),
+							"Masked Net: " .. _src_ca:truncate(_src_prefix_len):toString(),
 							pdns.loglevels.Debug
 						)
 						local new_dr = dr_ca_str:gsub("^".._src, _tgt)

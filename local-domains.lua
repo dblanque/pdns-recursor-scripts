@@ -238,7 +238,7 @@ local function replace_content(dq, dq_override)
 end
 
 local cnameReturnOnReplace = false
-local cnamePostResolve(dq)
+local function cnamePostResolve(dq)
 	postresolve(dq)
 end
 

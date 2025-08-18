@@ -238,7 +238,7 @@ local function postresolve_cname_local_override_patch(dq)
 	for _, record in ipairs(dq_records) do
 		if record.type == pdns.CNAME then
 			has_cname = true
-		else if record.type == pdns.NS then
+		elseif record.type == pdns.NS then
 			has_ns = true
 			break
 		end

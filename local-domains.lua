@@ -39,7 +39,16 @@ end
 
 local function preoutQueryCnameChain(dq)
 	if dq.data.cname_chain then
-		dq.udpQueryDest("10.10.10.1:53")
+		local dq_records = dq:getRecords()
+		for dr_index, dr in ipairs(dq_records) do
+			local dr_content = dr:getContent()
+			if not dr_content then
+				goto continue
+			end
+			dq.udpQueryDest = newCA("10.10.10.1:53")
+			dq.udpQuery = "DOMAIN " .. dr_content:toString()
+			::continue::
+		end
 	end
 end
 

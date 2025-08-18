@@ -128,6 +128,10 @@ local function postresolve_one_to_one(dq)
 				local _acl = _opts["acl"]
 				local _acl_masks = newNMG()
 				_acl_masks:addMasks(_acl)
+				pdnslog(
+					"One-to-One will only apply to: " .. _acl_masks:toString(),
+					pdns.loglevels.Debug
+				)
 	
 				-- If source subnet string matches
 				if _src_netmask:match(dr_ca_str) then

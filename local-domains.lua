@@ -121,6 +121,10 @@ local function postresolve_one_to_one(dq)
 				)
 			end
 			goto continue
+		else
+			if fn_debug then
+				pdnslog("DNSR Content: " .. dr_content, pdns.loglevels.Debug)
+			end
 		end
 		-- Call function without raising exception to parent process
 		local ok, dr_ca = pcall(newCA, dr_content)
@@ -130,7 +134,7 @@ local function postresolve_one_to_one(dq)
 		else
 			local dr_ca_str = dr_ca:toString()
 			if fn_debug then
-				pdnslog("DNSR Content: " .. dr_ca_str, pdns.loglevels.Debug)
+				pdnslog("DNSR ComboAddress: " .. dr_ca_str, pdns.loglevels.Debug)
 			end
 
 			-- Check if record is within 1-to-1 requested subnets

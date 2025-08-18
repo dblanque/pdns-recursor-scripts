@@ -52,7 +52,11 @@ end
 function f.table_to_str(T, SEP)
 	local s = ""
 	for _, v in pairs(T) do
-		s = tostring(s) .. SEP .. v
+		if _ == 1 then
+			s = tostring(v)
+		else
+			s = s .. SEP .. tostring(v)
+		end
 	end
 	return s
 end

@@ -21,6 +21,9 @@ return {
 		["example.com"] = {"ns1","ns2","dns","dot","doh"}
 	},
 	private_zones_ns_override = false,
+	exclude_local_forwarder_domains = {
+		"external.example.com",
+	},
 	override_map = {
 		["something.example.com"]={
 			"A",

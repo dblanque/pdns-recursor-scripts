@@ -84,7 +84,8 @@ function preresolve(dq)
 		end
 		pdnslog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
 		local result = pre_r_f(dq)
-		if result == true and not wants_postresolve then
+		if result and not wants_postresolve then
+			dq.variable = true
 			return result
 		end
 		::continue::
@@ -95,6 +96,7 @@ function preresolve(dq)
 	)
 	if dq.data.cname_chain then
 		cname_override_patch(dq)
+		dq.variable = true
 		return true
 	end
 	return false
@@ -112,7 +114,10 @@ function postresolve(dq)
 		end
 		pdnslog("postresolve f(): " .. f_name, pdns.loglevels.Debug)
 		local result = post_r_f(dq)
-		if result == true then return result end
+		if result == true then
+			dq.variable = true
+			return result
+		end
 		::continue::
 	end
 	return false

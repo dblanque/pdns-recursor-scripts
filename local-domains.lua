@@ -161,7 +161,7 @@ local function postresolve_one_to_one(dq)
 
 	for _, record in ipairs(dq_records) do
 		local record_content = record:getContent()
-		log_record_content(record_content, g.options.debug_post_one_to_one)
+		log_record_content(record_content)
 		if not record_content then
 			goto continue
 		end
@@ -284,7 +284,7 @@ function cname_override_patch(dq)
 	
 	for _, record in ipairs(dq_records) do
 		local record_content = record:getContent()
-		log_record_content(record_content, true)
+		log_record_content(record_content)
 		if not record_content then
 			goto continue
 		end

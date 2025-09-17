@@ -11,14 +11,22 @@ end
 require "ip-translate"
 
 -- List of private domains
-local local_domain_overrides=newDS()
-local local_domain_overrides_t={}
+local local_domain_overrides = newDS()
+local local_domain_overrides_t = {}
 local local_whitelist_ds = newDS()
+local conf_domain_overrides = newDS()
 
 -- Populate whitelist
 if g.options.exclude_local_forwarder_domains then
 	for _, domain in ipairs(g.options.exclude_local_forwarder_domains) do
 		local_whitelist_ds:add(newDN(domain))
+	end
+end
+
+-- Populate Local Conf. Overrides
+if g.options.override_map then
+	for _, domain in ipairs(g.options.override_map) do
+		conf_domain_overrides:add(newDN(domain))
 	end
 end
 
@@ -53,9 +61,11 @@ local function is_excluded_from_local(dq)
 	return local_whitelist_ds:check(dq.qname)
 end
 
-local function is_excluded_from_fn(fn_name, dq)
-	local excl_exact = g.options.exclude_local_fn_domains[fn_name]
-	local excl_patterns = g.options.exclude_local_fn_domains_re[fn_name]
+local function has_conf_override(fn_name, dq)
+	-- check override_map
+	-- check regex_map
+	local excl_exact = g.options.override_map
+	local excl_patterns = g.options.regex_map
 	if not excl_exact and not excl_patterns then
 		return false
 	end
@@ -66,7 +76,7 @@ local function is_excluded_from_fn(fn_name, dq)
 			end
 		end
 	end
-	return local_whitelist_ds:check(dq.qname)
+	return conf_domain_overrides:check(dq.qname)
 end
 
 local function log_record_content(record_content)
@@ -485,6 +495,10 @@ end
 local function preresolve_rpr(dq)
 	-- do not pre-resolve if not in our domains
 	if is_excluded_from_local(dq) then
+		return false
+	end
+	
+	if has_conf_override(dq) then
 		return false
 	end
 

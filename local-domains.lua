@@ -488,10 +488,6 @@ local function preresolve_rpr(dq)
 		return false
 	end
 
-	if is_excluded_from_fn("preresolve_rpr", dq) then
-		return false
-	end
-
 	local exclude_main_domain_from_irp
 	if g.options.exclude_main_domain_from_irp == nil then
 		check_main = true

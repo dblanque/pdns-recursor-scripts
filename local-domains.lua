@@ -306,7 +306,7 @@ local function replace_content(dq, dq_override)
 		if pdns[dq_type] == pdns.CNAME then
 			-- Don't use this here or we don't get post-resolve 1-to-1 changes
 			-- dq.followupFunction="followCNAMERecords"
-			dq.data.cname_chain = true
+			dq.data.wants_postresolve = true
 			return "cname"
 		end
 	end

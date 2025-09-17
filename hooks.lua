@@ -69,12 +69,15 @@ end
 function preresolve(dq)
 	-- Initialize persistent data table
 	if not dq.data then
-		dq.data = {}
+		dq.data = {
+			cname_chain=false,
+			wants_postresolve=false
+		}
 	end
 
 	for index, f_name in ipairs(g.preresolve_index) do
 		local pre_r_f = g.preresolve_functions[f_name]
-		local wants_postresolve = dq.data.cname_chain or false
+		local wants_postresolve = dq.data.wants_postresolve or dq.data.cname_chain
 		if not pre_r_f then
 			pdnslog(
 				"preresolve f() Function Index Mis-match: " .. f_name,
@@ -94,6 +97,7 @@ function preresolve(dq)
 		"DQ Data CNAME Chain " .. tostring(dq.data.cname_chain),
 		pdns.loglevels.Debug
 	)
+	-- Patch CNAME Overrides
 	if dq.data.cname_chain then
 		cname_override_patch(dq)
 		dq.variable = true

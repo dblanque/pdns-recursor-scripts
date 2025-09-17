@@ -388,7 +388,6 @@ local function preresolve_regex(dq)
 		pdns.loglevels.Debug
 	)
 	local qname = f.qname_remove_trailing_dot(dq)
-	local overridden = false
 	local replaced = false
 	for key, value in pairs(g.options.regex_map) do
 		if not re.match(qname, key) then
@@ -398,7 +397,7 @@ local function preresolve_regex(dq)
 		replaced = replace_content(dq, value)
 		if fn_debug then
 			pdnslog(
-				"preresolve_regex(): REGEX Overridden Result: " .. tostring(overridden),
+				"preresolve_regex(): REGEX Replaced Result: " .. tostring(replaced),
 				pdns.loglevels.Debug
 			)
 		end
@@ -506,7 +505,6 @@ local function preresolve_rpr(dq)
 	end
 
 	if has_conf_override(dq) then
-		dq.data.wants_postresolve = true
 		return false
 	end
 

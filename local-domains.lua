@@ -281,6 +281,14 @@ function cname_override_patch(dq)
 
 	pdnslog("cname_override_patch(): has_cname = ".. tostring(has_cname))
 	pdnslog("cname_override_patch(): has_ns = ".. tostring(has_ns))
+	
+	for _, record in ipairs(dq_records) do
+		local record_content = record:getContent()
+		log_record_content(record_content, true)
+		if not record_content then
+			goto continue
+		end
+	end
 	if has_cname and has_ns then
 		dq:setRecords({dq_records[cname_index]})
 		return true

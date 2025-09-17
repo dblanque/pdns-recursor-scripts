@@ -104,6 +104,7 @@ function preresolve(dq)
 			return true
 		end
 	end
+	pdnslog("Returned false on preresolve ", pdns.loglevels.Debug)
 	return false
 end
 

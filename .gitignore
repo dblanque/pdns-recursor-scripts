@@ -4,3 +4,4 @@ conf.d/**
 !conf.d/example.lua
 venv
 .venv
+**/local-domains.list

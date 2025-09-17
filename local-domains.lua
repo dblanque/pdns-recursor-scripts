@@ -272,11 +272,25 @@ function cname_override_patch(dq)
 		end
 	end
 
-	pdnslog(tostring(has_cname))
-	pdnslog(tostring(has_ns))
+	pdnslog("has_cname"..tostring(has_cname))
+	pdnslog("has_ns"..tostring(has_ns))
 	if has_cname and has_ns then
 		dq:setRecords({dq_records[cname_index]})
 		return true
+	end
+	return false
+end
+
+local function only_has_cname(dq)
+	local dq_records = dq:getRecords()
+	if not dq_records then
+		return false
+	end
+
+	for _idx, record in ipairs(dq_records) do
+		if record.type ~= pdns.CNAME then
+			return true
+		end
 	end
 	return false
 end

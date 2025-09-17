@@ -97,7 +97,7 @@ function preresolve(dq)
 	if dq.data.cname_chain then
 		cname_override_patch(dq)
 		dq.variable = true
-		return true
+		return only_has_cname(dq)
 	end
 	return false
 end

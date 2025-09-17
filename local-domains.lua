@@ -281,20 +281,6 @@ function cname_override_patch(dq)
 	return false
 end
 
-local function only_has_cname(dq)
-	local dq_records = dq:getRecords()
-	if not dq_records then
-		return false
-	end
-
-	for _idx, record in ipairs(dq_records) do
-		if record.type ~= pdns.CNAME then
-			return true
-		end
-	end
-	return false
-end
-
 local function replace_content(dq, dq_override)
 	local dq_type = dq_override["qtype"]
 	local dq_replace_any = dq_override["replace_any"]

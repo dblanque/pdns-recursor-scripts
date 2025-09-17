@@ -82,12 +82,12 @@ end
 local function log_record_content(record_content)
 	if not record_content then
 		pdnslog(
-			"No DNSR Content for " .. dq.qname:toString(),
+			"No DNS Record Content for " .. dq.qname:toString(),
 			pdns.loglevels.Debug
 		)
 	else
 		pdnslog(
-			"DNSR Content: " .. record_content,
+			"DNS Record Content: " .. record_content,
 			pdns.loglevels.Debug
 		)
 	end
@@ -171,12 +171,13 @@ local function postresolve_one_to_one(dq)
 		local ok, record_ca = pcall(newCA, record_content)
 		if not ok then
 			--[[
-			If it's a CNAME then the last CNAME of the Chain should be
-			used for all A/AAAA Records, and the complete chain should be
-			shown in the response.
+				If it's a CNAME then the last CNAME of the Chain should be
+				used for all A/AAAA Records, and the complete chain should be
+				shown in the response.
 			]]
 			if record.type == pdns.CNAME then
 				prev_cname = record_content
+				fn_debug("Set previous CNAME: " .. prev_cname)
 			end
 			table.insert(result_dq, record)
 			goto continue
@@ -196,7 +197,9 @@ local function postresolve_one_to_one(dq)
 				local _tgt_prefix_len = tonumber(_tgt:sub(-2))
 				-- Compare Prefix length for both netmasks
 				if _src_prefix_len ~= _tgt_prefix_len then
-					fn_debug("One-to-One Source and Target must have same mask.")
+					fn_debug(
+						"One-to-One Source and Target must have same mask."
+					)
 					goto continue
 				end
 
@@ -207,7 +210,8 @@ local function postresolve_one_to_one(dq)
 				local _acl_masks = newNMG()
 				_acl_masks:addMasks(_acl)
 				fn_debug(
-					"One-to-One will only apply to: " .. f.table_to_str(_acl, ", ")
+					"One-to-One will only apply to: " ..
+					f.table_to_str(_acl, ", ")
 				)
 	
 				-- If source subnet matches
@@ -272,8 +276,8 @@ function cname_override_patch(dq)
 		end
 	end
 
-	pdnslog("has_cname"..tostring(has_cname))
-	pdnslog("has_ns"..tostring(has_ns))
+	pdnslog("cname_override_patch(): has_cname = ".. tostring(has_cname))
+	pdnslog("cname_override_patch(): has_ns = ".. tostring(has_ns))
 	if has_cname and has_ns then
 		dq:setRecords({dq_records[cname_index]})
 		return true

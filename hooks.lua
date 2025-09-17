@@ -99,9 +99,10 @@ function preresolve(dq)
 	-- Patch CNAME/NS Overrides
 	if dq.data.wants_postresolve then
 		pdnslog("Applying CNAME/NS Patch ", pdns.loglevels.Debug)
-		cname_override_patch(dq)
-		dq.variable = true
-		return true
+		if cname_override_patch(dq) then
+			dq.variable = true
+			return true
+		end
 	end
 	return false
 end

@@ -61,7 +61,7 @@ local function is_excluded_from_local(dq)
 	return local_whitelist_ds:check(dq.qname)
 end
 
-local function has_conf_override(fn_name, dq)
+local function has_conf_override(dq)
 	-- check override_map
 	-- check regex_map
 	local excl_exact = g.options.override_map

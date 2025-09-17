@@ -70,7 +70,7 @@ local function has_conf_override(dq)
 		return false
 	end
 	if excl_patterns then
-		for i, pattern in ipairs(excl_patterns) do
+		for pattern, replace_data in pairs(excl_patterns) do
 			if re.match(dq.qname:toString(), pattern) then
 				return true
 			end

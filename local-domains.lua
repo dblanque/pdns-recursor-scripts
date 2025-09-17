@@ -258,6 +258,9 @@ local function postresolve_one_to_one(dq)
 end
 
 function cname_override_patch(dq)
+	--[[
+		Function to patch CNAME on NS Record Replacements.
+	]]
 	local dq_records = dq:getRecords()
 	local cname_index = nil
 	local has_cname = false
@@ -501,8 +504,9 @@ local function preresolve_rpr(dq)
 	if is_excluded_from_local(dq) then
 		return false
 	end
-	
+
 	if has_conf_override(dq) then
+		dq.data.wants_postresolve = true
 		return false
 	end
 

@@ -53,6 +53,22 @@ local function is_excluded_from_local(dq)
 	return local_whitelist_ds:check(dq.qname)
 end
 
+local function is_excluded_from_fn(fn_name, dq)
+	local excl_exact = g.options.exclude_local_fn_domains[fn_name]
+	local excl_patterns = g.options.exclude_local_fn_domains_re[fn_name]
+	if not excl_exact and not excl_patterns then
+		return false
+	end
+	if excl_patterns then
+		for i, pattern in ipairs(excl_patterns) do
+			if re.match(dq.qname:toString(), pattern) then
+				return true
+			end
+		end
+	end
+	return local_whitelist_ds:check(dq.qname)
+end
+
 local function log_record_content(record_content)
 	if not record_content then
 		pdnslog(
@@ -469,6 +485,10 @@ end
 local function preresolve_rpr(dq)
 	-- do not pre-resolve if not in our domains
 	if is_excluded_from_local(dq) then
+		return false
+	end
+
+	if is_excluded_from_fn("preresolve_rpr", dq) then
 		return false
 	end
 

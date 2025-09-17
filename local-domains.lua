@@ -45,6 +45,20 @@ local function is_internal_domain(dq, check_main)
 	)
 end
 
+local function only_has_cname(dq)
+	local dq_records = dq:getRecords()
+	if not dq_records then
+		return false
+	end
+
+	for _idx, record in ipairs(dq_records) do
+		if record.type ~= pdns.CNAME then
+			return true
+		end
+	end
+	return false
+end
+
 local function is_excluded_from_local(dq)
 	local excl_exact = g.options.exclude_local_forwarder_domains
 	local excl_patterns = g.options.exclude_local_forwarder_domains_re
@@ -363,7 +377,7 @@ local function preresolve_override(dq)
 		end
 	end
 
-	if replaced then
+	if not only_has_cname(dq) and replaced then
 		postresolve(dq)
 	end
 	return replaced
@@ -416,7 +430,7 @@ local function preresolve_regex(dq)
 		::continue::
 	end
 
-	if replaced then
+	if not only_has_cname(dq) and replaced then
 		postresolve(dq)
 	end
 	return replaced

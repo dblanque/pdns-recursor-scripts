@@ -318,6 +318,9 @@ local function replace_content(dq, dq_override)
 	return true
 end
 
+if g.options.dev_cname_replace_return == nil then
+	g.options.dev_cname_replace_return = false
+end
 local cnameReturnOnReplace = g.options.dev_cname_replace_return
 
 local function preresolve_override(dq)

@@ -367,6 +367,7 @@ local function preresolve_override(dq)
 	local replaced = false
 	if f.table_contains_key(g.options.override_map, qname) then
 		for key, value in pairs(g.options.override_map) do
+			if replaced then break end
 			if key ~= qname then
 				goto continue
 			end
@@ -376,6 +377,7 @@ local function preresolve_override(dq)
 	end
 
 	for key, value in pairs(g.options.regex_map) do
+		if replaced then break end
 		if not re.match(qname, key) then
 			goto continue
 		end
@@ -395,8 +397,11 @@ local function preresolve_override(dq)
 		::continue::
 	end
 
-	if replaced and not dq.data.cname_chain then
-		return postresolve(dq)
+	if replaced then
+		dq.variable = true
+		if not dq.data.cname_chain then
+			return postresolve(dq)
+		end
 	end
 	return replaced
 end

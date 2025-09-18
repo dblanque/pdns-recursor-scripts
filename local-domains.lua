@@ -395,6 +395,9 @@ local function preresolve_override(dq)
 		::continue::
 	end
 
+	if replaced and not dq.data.cname_chain then
+		return postresolve(dq)
+	end
 	return replaced
 end
 

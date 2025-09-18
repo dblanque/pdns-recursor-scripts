@@ -121,6 +121,9 @@ function preresolve(dq)
 		"DQ Pre-resolve Result: " .. tostring(result),
 		pdns.loglevels.Debug
 	)
+	if result == nil then
+		return false
+	end
 	return result
 end
 

@@ -71,9 +71,12 @@ function preresolve(dq)
 	if not dq.data then
 		dq.data = {}
 	end
-	local result = nil
+	local result = false
 
 	for index, f_name in ipairs(g.preresolve_index) do
+		if result then
+			goto continue
+		end
 		local pre_r_f = g.preresolve_functions[f_name]
 		if not pre_r_f then
 			pdnslog(

@@ -74,9 +74,6 @@ function preresolve(dq)
 	local result = false
 
 	for index, f_name in ipairs(g.preresolve_index) do
-		if result then
-			goto continue
-		end
 		local pre_r_f = g.preresolve_functions[f_name]
 		if not pre_r_f then
 			pdnslog(
@@ -92,10 +89,11 @@ function preresolve(dq)
 			dq.variable = true
 			-- Log Content
 			f.dq_log_record_content(dq)
-			return result
+			break
 		end
 		::continue::
 	end
+	if result then return result end
 	pdnslog(
 		"DQ Wants Post-resolve: " .. tostring(dq.data.cname_chain),
 		pdns.loglevels.Debug

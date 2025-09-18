@@ -72,11 +72,9 @@ function preresolve(dq)
 		dq.data = {}
 	end
 	local result = nil
-	local wants_postresolve = false
 
 	for index, f_name in ipairs(g.preresolve_index) do
 		local pre_r_f = g.preresolve_functions[f_name]
-		wants_postresolve = dq.data.cname_chain or wants_postresolve
 		if not pre_r_f then
 			pdnslog(
 				"preresolve f() Function Index Mis-match: " .. f_name,
@@ -87,10 +85,6 @@ function preresolve(dq)
 		pdnslog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
 		result = pre_r_f(dq)
 		if result then
-			if wants_postresolve then
-				pdnslog("preresolve f(): wants_postresolve skip triggered " .. f_name, pdns.loglevels.Debug)
-				break
-			end
 			pdnslog("preresolve f(): Returned true for " .. f_name, pdns.loglevels.Debug)
 			dq.variable = true
 			-- Log Content

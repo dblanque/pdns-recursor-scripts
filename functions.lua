@@ -1,5 +1,23 @@
 local f = {}
 
+--[[
+	function f.followCNAMEChainLocally(cname_value)
+		local command = string.format("dig %s +short @127.0.0.1", cname_value)
+		local handle = io.popen(command)
+		local output = handle:read("*a")
+		handle:close()
+		
+		local records = {}
+		for record in output:gmatch("[^\r\n]+") do
+			if record:match("%S") then  -- Skip empty lines
+				table.insert(records, record)
+			end
+		end
+		
+		return records
+	end
+]]
+
 function f.extract_hosts_domain(str)
 	-- Pattern explanation:
 	-- ^                - Start of string
@@ -9,6 +27,38 @@ function f.extract_hosts_domain(str)
 	-- $                - End of string
 	local domain = str:match("^[%d%.:]+%s+(.*)$")
 	return domain or str  -- Return original string if no match
+end
+
+function f.dr_log_content(record_content)
+	if not record_content then
+		pdnslog(
+			"No DNS Record Content for " .. dq.qname:toString(),
+			pdns.loglevels.Debug
+		)
+	else
+		pdnslog(
+			"DNS Record Content: " .. record_content,
+			pdns.loglevels.Debug
+		)
+	end
+end
+
+function f.dq_log_record_content(dq)
+	local dq_records = dq:getRecords()
+	for _, record in ipairs(dq_records) do
+		local record_content = record:getContent()
+		f.dr_log_content(record_content)
+	end
+end
+
+function f.dq_ends_in_cname(dq)
+	local dq_records = dq:getRecords()
+	if not dq_records then
+		return false
+	end
+
+	local last_record = dq_records[#dq_records]
+	return last_record.type == pdns.CNAME
 end
 
 function f.empty_str(s)

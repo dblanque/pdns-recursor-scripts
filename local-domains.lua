@@ -11,14 +11,22 @@ end
 require "ip-translate"
 
 -- List of private domains
-local local_domain_overrides=newDS()
-local local_domain_overrides_t={}
+local local_domain_overrides = newDS()
+local local_domain_overrides_t = {}
 local local_whitelist_ds = newDS()
+local conf_domain_overrides = newDS()
 
 -- Populate whitelist
 if g.options.exclude_local_forwarder_domains then
 	for _, domain in ipairs(g.options.exclude_local_forwarder_domains) do
 		local_whitelist_ds:add(newDN(domain))
+	end
+end
+
+-- Populate Local Conf. Overrides
+if g.options.override_map then
+	for _, domain in ipairs(g.options.override_map) do
+		conf_domain_overrides:add(newDN(domain))
 	end
 end
 
@@ -30,11 +38,32 @@ local function is_internal_domain(dq, check_main)
 	if not check_main then
 		return local_domain_overrides:check(dq.qname)
 	end
-
-	return (
+	local r = (
 		local_domain_overrides:check(dq.qname) or
 		dq.qname:isPartOf(main_domain_qname)
 	)
+	pdnslog(
+		string.format(
+			"Checked if %s is internal (%s).",
+			dq.qname:toString(),
+			tostring(r)
+		)
+	)
+	return r
+end
+
+local function has_a_or_aaaa(dq)
+	local dq_records = dq:getRecords()
+	if not dq_records then
+		return false
+	end
+
+	for _idx, record in ipairs(dq_records) do
+		if record.type == pdns.A or record.type == pdns.AAAA then
+			return true
+		end
+	end
+	return false
 end
 
 local function is_excluded_from_local(dq)
@@ -53,18 +82,26 @@ local function is_excluded_from_local(dq)
 	return local_whitelist_ds:check(dq.qname)
 end
 
-local function log_record_content(record_content)
-	if not record_content then
-		pdnslog(
-			"No DNSR Content for " .. dq.qname:toString(),
-			pdns.loglevels.Debug
-		)
-	else
-		pdnslog(
-			"DNSR Content: " .. record_content,
-			pdns.loglevels.Debug
-		)
+local function has_conf_override(dq)
+	-- check override_map
+	-- check regex_map
+	local excl_exact = g.options.override_map
+	local excl_patterns = g.options.regex_map
+	if not excl_exact and not excl_patterns then
+		return false
 	end
+	if excl_patterns then
+		for pattern, replace_data in pairs(excl_patterns) do
+			if replace_data.qtype ~= dq.qtype then
+				goto continue
+			end
+			if re.match(dq.qname:toString(), pattern) then
+				return true
+			end
+			::continue::
+		end
+	end
+	return conf_domain_overrides:check(dq.qname)
 end
 
 -- loads contents of a file line by line into the given table
@@ -81,15 +118,14 @@ local function loadDSFile(filename, suffixMatchGroup, domainTable)
 end
 
 local function valid_type_replace(dq_type, replace_type)
-	if dq_type ~= replace_type and
-		(
-			(dq_type == pdns.A and replace_type ~= pdns.CNAME) or
-			(dq_type == pdns.AAAA and replace_type ~= pdns.CNAME)
-		)
-		then
-		return false
-	end
-	return true
+	local types_match = dq_type == replace_type
+	local valid_type_replaces = (
+		-- A is not replaced with CNAME
+		(dq_type == pdns.A and replace_type == pdns.CNAME) or
+		-- AAAA is not replaced with CNAME
+		(dq_type == pdns.AAAA and replace_type == pdns.CNAME)
+	)
+	return types_match or valid_type_replaces
 end
 
 local function postresolve_one_to_one(dq)
@@ -105,6 +141,17 @@ local function postresolve_one_to_one(dq)
 	end
 
 	if is_excluded_from_local(dq) then
+		return false
+	end
+
+	if not has_a_or_aaaa(dq) then
+		pdnslog(
+			string.format(
+				"postresolve_one_to_one(): No 1-to-1 required for record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
 		return false
 	end
 
@@ -135,7 +182,7 @@ local function postresolve_one_to_one(dq)
 
 	for _, record in ipairs(dq_records) do
 		local record_content = record:getContent()
-		log_record_content(record_content, g.options.debug_post_one_to_one)
+		f.dr_log_content(record_content)
 		if not record_content then
 			goto continue
 		end
@@ -145,12 +192,13 @@ local function postresolve_one_to_one(dq)
 		local ok, record_ca = pcall(newCA, record_content)
 		if not ok then
 			--[[
-			If it's a CNAME then the last CNAME of the Chain should be
-			used for all A/AAAA Records, and the complete chain should be
-			shown in the response.
+				If it's a CNAME then the last CNAME of the Chain should be
+				used for all A/AAAA Records, and the complete chain should be
+				shown in the response.
 			]]
 			if record.type == pdns.CNAME then
 				prev_cname = record_content
+				fn_debug("Set previous CNAME: " .. prev_cname)
 			end
 			table.insert(result_dq, record)
 			goto continue
@@ -170,7 +218,9 @@ local function postresolve_one_to_one(dq)
 				local _tgt_prefix_len = tonumber(_tgt:sub(-2))
 				-- Compare Prefix length for both netmasks
 				if _src_prefix_len ~= _tgt_prefix_len then
-					fn_debug("One-to-One Source and Target must have same mask.")
+					fn_debug(
+						"One-to-One Source and Target must have same mask."
+					)
 					goto continue
 				end
 
@@ -181,7 +231,8 @@ local function postresolve_one_to_one(dq)
 				local _acl_masks = newNMG()
 				_acl_masks:addMasks(_acl)
 				fn_debug(
-					"One-to-One will only apply to: " .. f.table_to_str(_acl, ", ")
+					"One-to-One will only apply to: " ..
+					f.table_to_str(_acl, ", ")
 				)
 	
 				-- If source subnet matches
@@ -228,6 +279,9 @@ local function postresolve_one_to_one(dq)
 end
 
 function cname_override_patch(dq)
+	--[[
+		Function to patch CNAME on NS Record Replacements.
+	]]
 	local dq_records = dq:getRecords()
 	local cname_index = nil
 	local has_cname = false
@@ -246,8 +300,8 @@ function cname_override_patch(dq)
 		end
 	end
 
-	pdnslog(tostring(has_cname))
-	pdnslog(tostring(has_ns))
+	pdnslog("cname_override_patch(): has_cname = ".. tostring(has_cname))
+	pdnslog("cname_override_patch(): has_ns = ".. tostring(has_ns))
 	if has_cname and has_ns then
 		dq:setRecords({dq_records[cname_index]})
 		return true
@@ -268,19 +322,17 @@ local function replace_content(dq, dq_override)
 	local dq_values = dq_override["content"]
 	local dq_ttl = dq_override["ttl"] or g.options.default_ttl
 	for i, v in ipairs(dq_values) do
+		-- Add answer
 		dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
 			-- Don't use this here or we don't get post-resolve 1-to-1 changes
 			-- dq.followupFunction="followCNAMERecords"
 			dq.data.cname_chain = true
-			return "cname"
 		end
 	end
 	return true
 end
-
-local cnameReturnOnReplace = false
 
 local function preresolve_override(dq)
 	local fn_debug = g.options.debug_pre_override
@@ -312,19 +364,14 @@ local function preresolve_override(dq)
 	local replaced = false
 	if f.table_contains_key(g.options.override_map, qname) then
 		for key, value in pairs(g.options.override_map) do
-			if key ~= qname then goto continue end
-			replaced = replace_content(dq, value)
-			if replaced == "cname" then
-				replaced = cnameReturnOnReplace
-				break
+			if key ~= qname then
+				goto continue
 			end
+			replaced = replace_content(dq, value)
 			::continue::
 		end
 	end
 
-	if replaced then
-		postresolve(dq)
-	end
 	return replaced
 end
 
@@ -334,7 +381,7 @@ local function preresolve_regex(dq)
 	if is_excluded_from_local(dq) then
 		return false
 	end
-	
+
 	-- do not pre-resolve if not in our domains
 	if not is_internal_domain(dq, true) then
 		pdnslog(
@@ -355,7 +402,6 @@ local function preresolve_regex(dq)
 		pdns.loglevels.Debug
 	)
 	local qname = f.qname_remove_trailing_dot(dq)
-	local overridden = false
 	local replaced = false
 	for key, value in pairs(g.options.regex_map) do
 		if not re.match(qname, key) then
@@ -365,20 +411,18 @@ local function preresolve_regex(dq)
 		replaced = replace_content(dq, value)
 		if fn_debug then
 			pdnslog(
-				"preresolve_regex(): REGEX Overridden Result: " .. tostring(overridden),
+				string.format(
+					"preresolve_regex(): REGEX Replaced Result: %s for '%s' (type %s)",
+					tostring(replaced),
+					tostring(key),
+					tostring(value.qtype)
+				),
 				pdns.loglevels.Debug
 			)
-		end
-		if replaced == "cname" then
-			replaced = cnameReturnOnReplace
-			break
 		end
 		::continue::
 	end
 
-	if replaced then
-		postresolve(dq)
-	end
 	return replaced
 end
 
@@ -469,6 +513,18 @@ end
 local function preresolve_rpr(dq)
 	-- do not pre-resolve if not in our domains
 	if is_excluded_from_local(dq) then
+		return false
+	end
+
+	if has_conf_override(dq) then
+		pdnslog(
+			string.format(
+				"preresolve_rpr(): Skipping reverse proxy replacement"..
+				" pre-resolve for external record %s as it has an override",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
 		return false
 	end
 

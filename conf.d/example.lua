@@ -28,6 +28,12 @@ return {
 	exclude_local_forwarder_domains_re = {
 		"^(sub1|sub2).example.com$"
 	},
+	exclude_local_fn_domains = {
+		["preresolve_ns"]={"external.example.org"}
+	},
+	exclude_local_fn_domains_re = {
+		["preresolve_rpr"]={"^(sub1|sub2).example.org$"}
+	},
 	override_map = {
 		["something.example.com"]={
 			qtype="A",

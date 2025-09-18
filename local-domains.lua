@@ -131,7 +131,7 @@ end
 local function postresolve_one_to_one(dq)
 	local function fn_debug(msg)
 		if not g.options.debug_post_one_to_one then
-			return
+			return false
 		end
 		pdnslog(msg, pdns.loglevels.Debug)
 	end
@@ -271,7 +271,6 @@ local function postresolve_one_to_one(dq)
 			),
 			pdns.loglevels.Debug
 		)
-		return true
 	end
 
 	fn_debug("Did not perform one-to-one.")

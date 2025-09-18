@@ -1,12 +1,5 @@
 # Scripts for PowerDNS Split-DNS and Malware Filtering
 
-## Update 1.01
-* Whitelisting for DNSBL Domains has been moved to a separate file instead of the
-Lua config (See corresponding section below).
-* Fixes to syntax detection
-* Improvements to use Native PowerDNS DS object in all syntax modes except PCRE.
-* Improvements to comment detection regexes.
-
 This script-set was created to facilitate Malware Filtering and Split-DNS support on
 PowerDNS Recursor Services.
 
@@ -85,6 +78,12 @@ For that end you may put all your internal domains except for your main domain
 in the `local-domains.list` file, and define your main domain as `main_domain`
 (For alternative functions like `postresolve_binat` to work).
 
+### DISCLAIMER
+
+CNAME internal domain replacement does not support full CNAME chain resolution
+so you may need to use A/AAAA records if your application does not complete
+the DNS chain by itself.
+
 ```lua
 -- /etc/powerdns/pdns-recursor-scripts/conf.d/local-resolve.lua
 return {
@@ -96,9 +95,14 @@ return {
 	internal_reverse_proxy_v4 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
 	internal_reverse_proxy_v6 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
 	use_local_forwarder = true,
-	private_zones_ns_override_map_only = true,
+	private_zones_ns_override_map_only = false,
+	-- This replaces NSes for a specific zone
 	private_zones_ns_override_map = {
 		["example.com"] = {"ns1","ns2","dns","dot","doh"}
+	},
+	-- This replaces NSes for all internal zones
+	private_zones_ns_override_prefixes = {
+		"ns1","ns2"
 	},
 	private_zones_ns_override = true,
 	override_map = {

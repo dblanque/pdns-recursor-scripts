@@ -236,21 +236,20 @@ local function postresolve_one_to_one(dq)
 				)
 	
 				-- If source subnet matches
-				if _src_netmask:match(record_addr) then
+				if _src_netmask:match(record_addr) and _acl_masks:match(client_addr) then
 					fn_debug("Source Netmask Matched: " .. record_addr)
+					fn_debug("ACL Netmask Matched: " .. client_addr:toString())
 					-- If client ip is in 1-to-1 ACLs...
-					if _acl_masks:match(client_addr) then
-						local new_addr = translate_ip(
-							record_addr,
-							_src,
-							_tgt
-						)
-						update_dq = true
-						if prev_cname then
-							record.name = newDN(prev_cname)
-						end
-						record:changeContent(new_addr)
+					local new_addr = translate_ip(
+						record_addr,
+						_src,
+						_tgt
+					)
+					update_dq = true
+					if prev_cname then
+						record.name = newDN(prev_cname)
 					end
+					record:changeContent(new_addr)
 				end
 			end
 	
@@ -275,7 +274,8 @@ local function postresolve_one_to_one(dq)
 		return true
 	end
 
-	return false
+	fn_debug("Did not perform one-to-one.")
+	return true
 end
 
 function cname_override_patch(dq)
@@ -410,11 +410,13 @@ local function preresolve_override(dq)
 
 	if replaced then
 		dq.variable = true
-		if not dq.data.cname_chain then
-			return postresolve(dq)
+		if dq.data.cname_chain then
+			return replaced
 		end
+		return postresolve(dq)
 	end
-	return replaced
+
+	return false
 end
 
 local function preresolve_ns(dq)
@@ -520,6 +522,11 @@ local function preresolve_rpr(dq)
 	-- do not pre-resolve if not in our domains
 	if is_excluded_from_local(dq) then
 		return false
+	end
+
+	-- If it's a CNAME Local Override skip this.
+	if dq.data.cname_chain then
+		return true
 	end
 
 	if has_conf_override(dq) then

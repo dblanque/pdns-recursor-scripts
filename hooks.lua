@@ -96,8 +96,8 @@ function preresolve(dq)
 			pdns.loglevels.Debug
 		)
 
-		if result then
-			break
+		if result and not dq.data.cname_chain then
+			return result
 		end
 		::continue::
 	end

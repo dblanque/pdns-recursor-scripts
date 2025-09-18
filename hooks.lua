@@ -152,10 +152,11 @@ function postresolve(dq)
 		::continue::
 	end
 
+	-- We always want to return true here or it makes weird problems.
 	if result == nil then
-		return false
+		return true
 	end
-	return result
+	return true
 end
 
 function maintenance(dq)

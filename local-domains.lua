@@ -271,7 +271,6 @@ local function postresolve_one_to_one(dq)
 			),
 			pdns.loglevels.Debug
 		)
-		return true
 	end
 
 	fn_debug("Did not perform one-to-one.")

@@ -147,9 +147,13 @@ function postresolve(dq)
 			pdnslog(f_name.."(): unhandled exception.")
 		end
 		if result then
-			return result
+			break
 		end
 		::continue::
+	end
+
+	if result == nil then
+		return false
 	end
 	return result
 end

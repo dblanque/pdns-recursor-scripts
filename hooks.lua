@@ -70,7 +70,7 @@ function preresolve(dq)
 	-- Initialize persistent data table
 	if not dq.data then
 		dq.data = {
-			wants_postresolve=false,
+			cname_chain=false,
 		}
 	end
 
@@ -85,26 +85,36 @@ function preresolve(dq)
 		end
 		pdnslog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
 		local result = pre_r_f(dq)
-		if result and not dq.data.wants_postresolve then
+		if result then
+			pdnslog("preresolve f(): Returned true for " .. f_name, pdns.loglevels.Debug)
 			dq.variable = true
+			--[[
+				if f.dq_ends_in_cname(dq) then
+					local records = dq:getRecords()
+					pdnslog(f.table_to_str(f.followCNAMEChainLocally(records[#records]:getContent())))
+				end
+			]]
 			return result
 		end
 		::continue::
 	end
 	pdnslog(
-		"DQ Data CNAME Chain " .. tostring(dq.data.wants_postresolve),
+		"DQ Wants Post-resolve: " .. tostring(dq.data.cname_chain),
 		pdns.loglevels.Debug
 	)
 
 	-- Patch CNAME/NS Overrides
-	if dq.data.wants_postresolve then
-		pdnslog("Applying CNAME/NS Patch ", pdns.loglevels.Debug)
+	if dq.data.cname_chain then
+		dq.variable = true
+
 		if cname_override_patch(dq) then
-			dq.variable = true
+			pdnslog("Applying CNAME/NS Patch", pdns.loglevels.Debug)
 			return true
 		end
 	end
-	pdnslog("Returned false on preresolve ", pdns.loglevels.Debug)
+
+	f.dq_log_record_content(dq)
+	pdnslog("Returned false on preresolve", pdns.loglevels.Debug)
 	return false
 end
 

@@ -1,5 +1,23 @@
 local f = {}
 
+--[[
+	function f.followCNAMEChainLocally(cname_value)
+		local command = string.format("dig %s +short @127.0.0.1", cname_value)
+		local handle = io.popen(command)
+		local output = handle:read("*a")
+		handle:close()
+		
+		local records = {}
+		for record in output:gmatch("[^\r\n]+") do
+			if record:match("%S") then  -- Skip empty lines
+				table.insert(records, record)
+			end
+		end
+		
+		return records
+	end
+]]
+
 function f.extract_hosts_domain(str)
 	-- Pattern explanation:
 	-- ^                - Start of string

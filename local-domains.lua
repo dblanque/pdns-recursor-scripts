@@ -38,21 +38,28 @@ local function is_internal_domain(dq, check_main)
 	if not check_main then
 		return local_domain_overrides:check(dq.qname)
 	end
-
-	return (
+	local r = (
 		local_domain_overrides:check(dq.qname) or
 		dq.qname:isPartOf(main_domain_qname)
 	)
+	pdnslog(
+		string.format(
+			"Checked if %s is internal (%s).",
+			dq.qname:toString(),
+			tostring(r)
+		)
+	)
+	return r
 end
 
-local function only_has_cname(dq)
+local function has_a_or_aaaa(dq)
 	local dq_records = dq:getRecords()
 	if not dq_records then
 		return false
 	end
 
 	for _idx, record in ipairs(dq_records) do
-		if record.type ~= pdns.CNAME then
+		if record.type == pdns.A or record.type == pdns.AAAA then
 			return true
 		end
 	end
@@ -85,26 +92,16 @@ local function has_conf_override(dq)
 	end
 	if excl_patterns then
 		for pattern, replace_data in pairs(excl_patterns) do
+			if replace_data.qtype ~= dq.qtype then
+				goto continue
+			end
 			if re.match(dq.qname:toString(), pattern) then
 				return true
 			end
+			::continue::
 		end
 	end
 	return conf_domain_overrides:check(dq.qname)
-end
-
-local function log_record_content(record_content)
-	if not record_content then
-		pdnslog(
-			"No DNS Record Content for " .. dq.qname:toString(),
-			pdns.loglevels.Debug
-		)
-	else
-		pdnslog(
-			"DNS Record Content: " .. record_content,
-			pdns.loglevels.Debug
-		)
-	end
 end
 
 -- loads contents of a file line by line into the given table
@@ -121,15 +118,14 @@ local function loadDSFile(filename, suffixMatchGroup, domainTable)
 end
 
 local function valid_type_replace(dq_type, replace_type)
-	if dq_type ~= replace_type and
-		(
-			(dq_type == pdns.A and replace_type ~= pdns.CNAME) or
-			(dq_type == pdns.AAAA and replace_type ~= pdns.CNAME)
-		)
-		then
-		return false
-	end
-	return true
+	local types_match = dq_type == replace_type
+	local valid_type_replaces = (
+		-- A is not replaced with CNAME
+		(dq_type == pdns.A and replace_type == pdns.CNAME) or
+		-- AAAA is not replaced with CNAME
+		(dq_type == pdns.AAAA and replace_type == pdns.CNAME)
+	)
+	return types_match or valid_type_replaces
 end
 
 local function postresolve_one_to_one(dq)
@@ -145,6 +141,17 @@ local function postresolve_one_to_one(dq)
 	end
 
 	if is_excluded_from_local(dq) then
+		return false
+	end
+
+	if not has_a_or_aaaa(dq) then
+		pdnslog(
+			string.format(
+				"postresolve_one_to_one(): No 1-to-1 required for record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
 		return false
 	end
 
@@ -175,7 +182,7 @@ local function postresolve_one_to_one(dq)
 
 	for _, record in ipairs(dq_records) do
 		local record_content = record:getContent()
-		log_record_content(record_content)
+		f.dr_log_content(record_content)
 		if not record_content then
 			goto continue
 		end
@@ -295,11 +302,6 @@ function cname_override_patch(dq)
 
 	pdnslog("cname_override_patch(): has_cname = ".. tostring(has_cname))
 	pdnslog("cname_override_patch(): has_ns = ".. tostring(has_ns))
-	
-	for _, record in ipairs(dq_records) do
-		local record_content = record:getContent()
-		log_record_content(record_content)
-	end
 	if has_cname and has_ns then
 		dq:setRecords({dq_records[cname_index]})
 		return true
@@ -320,22 +322,17 @@ local function replace_content(dq, dq_override)
 	local dq_values = dq_override["content"]
 	local dq_ttl = dq_override["ttl"] or g.options.default_ttl
 	for i, v in ipairs(dq_values) do
+		-- Add answer
 		dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
 			-- Don't use this here or we don't get post-resolve 1-to-1 changes
 			-- dq.followupFunction="followCNAMERecords"
-			dq.data.wants_postresolve = true
-			return "cname"
+			dq.data.cname_chain = true
 		end
 	end
 	return true
 end
-
-if g.options.dev_cname_replace_return == nil then
-	g.options.dev_cname_replace_return = false
-end
-local cnameReturnOnReplace = g.options.dev_cname_replace_return
 
 local function preresolve_override(dq)
 	local fn_debug = g.options.debug_pre_override
@@ -367,19 +364,14 @@ local function preresolve_override(dq)
 	local replaced = false
 	if f.table_contains_key(g.options.override_map, qname) then
 		for key, value in pairs(g.options.override_map) do
-			if key ~= qname then goto continue end
-			replaced = replace_content(dq, value)
-			if replaced == "cname" then
-				replaced = cnameReturnOnReplace
-				break
+			if key ~= qname then
+				goto continue
 			end
+			replaced = replace_content(dq, value)
 			::continue::
 		end
 	end
 
-	if not only_has_cname(dq) and replaced then
-		postresolve(dq)
-	end
 	return replaced
 end
 
@@ -389,7 +381,7 @@ local function preresolve_regex(dq)
 	if is_excluded_from_local(dq) then
 		return false
 	end
-	
+
 	-- do not pre-resolve if not in our domains
 	if not is_internal_domain(dq, true) then
 		pdnslog(
@@ -419,20 +411,18 @@ local function preresolve_regex(dq)
 		replaced = replace_content(dq, value)
 		if fn_debug then
 			pdnslog(
-				"preresolve_regex(): REGEX Replaced Result: " .. tostring(replaced),
+				string.format(
+					"preresolve_regex(): REGEX Replaced Result: %s for '%s' (type %s)",
+					tostring(replaced),
+					tostring(key),
+					tostring(value.qtype)
+				),
 				pdns.loglevels.Debug
 			)
-		end
-		if replaced == "cname" then
-			replaced = cnameReturnOnReplace
-			break
 		end
 		::continue::
 	end
 
-	if not only_has_cname(dq) and replaced then
-		postresolve(dq)
-	end
 	return replaced
 end
 
@@ -527,6 +517,14 @@ local function preresolve_rpr(dq)
 	end
 
 	if has_conf_override(dq) then
+		pdnslog(
+			string.format(
+				"preresolve_rpr(): Skipping reverse proxy replacement"..
+				" pre-resolve for external record %s as it has an override",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
 		return false
 	end
 

@@ -70,7 +70,7 @@ function preresolve(dq)
 	-- Initialize persistent data table
 	if not dq.data then
 		dq.data = {
-			cname_chain = false
+			cname_chain = false,
 		}
 	end
 	local result = false

@@ -92,7 +92,10 @@ local function has_conf_override(dq)
 	end
 	if excl_patterns then
 		for pattern, replace_data in pairs(excl_patterns) do
-			if re.match(dq.qname:toString(), pattern) then
+			if (
+				re.match(dq.qname:toString(), pattern) and
+				pdns[replace_data.qtype] == dq.qtype
+			) then
 				return true
 			end
 			::continue::
@@ -376,7 +379,7 @@ local function preresolve_override(dq)
 
 	for key, value in pairs(g.options.regex_map) do
 		if replaced then break end
-		local matches = re.match(qname, key)
+		local matches = re.match(qname, key) ~= nil
 
 		pdnslog(
 			string.format(

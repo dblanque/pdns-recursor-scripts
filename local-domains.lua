@@ -376,8 +376,18 @@ local function preresolve_override(dq)
 
 	for key, value in pairs(g.options.regex_map) do
 		if replaced then break end
+		local matches = re.match(qname, key)
 
-		if re.match(qname, key) then
+		pdnslog(
+			string.format(
+				"%s matches %s: %s",
+				qname,
+				key,
+				matches
+			),
+			pdns.loglevels.Debug
+		)
+		if matches then
 			replaced = replace_content(dq, value)
 			-- Log data
 			if fn_debug then

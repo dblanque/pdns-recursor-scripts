@@ -69,13 +69,14 @@ end
 function preresolve(dq)
 	-- Initialize persistent data table
 	if not dq.data then
-		dq.data = {
-			cname_chain=false,
-		}
+		dq.data = {}
 	end
+	local result = nil
+	local wants_postresolve = false
 
 	for index, f_name in ipairs(g.preresolve_index) do
 		local pre_r_f = g.preresolve_functions[f_name]
+		wants_postresolve = dq.data.cname_chain or wants_postresolve
 		if not pre_r_f then
 			pdnslog(
 				"preresolve f() Function Index Mis-match: " .. f_name,
@@ -84,8 +85,12 @@ function preresolve(dq)
 			goto continue
 		end
 		pdnslog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
-		local result = pre_r_f(dq)
+		result = pre_r_f(dq)
 		if result then
+			if wants_postresolve then
+				pdnslog("preresolve f(): wants_postresolve skip triggered " .. f_name, pdns.loglevels.Debug)
+				break
+			end
 			pdnslog("preresolve f(): Returned true for " .. f_name, pdns.loglevels.Debug)
 			dq.variable = true
 			-- Log Content
@@ -94,6 +99,23 @@ function preresolve(dq)
 		end
 		::continue::
 	end
+	pdnslog(
+		"DQ Wants Post-resolve: " .. tostring(dq.data.cname_chain),
+		pdns.loglevels.Debug
+	)
+
+	-- Patch CNAME/NS Overrides
+	if dq.data.cname_chain then
+		dq.variable = true
+
+		if cname_override_patch(dq) then
+			pdnslog("Applying CNAME/NS Patch", pdns.loglevels.Debug)
+			return true
+		end
+	end
+
+	f.dq_log_record_content(dq)
+	pdnslog("Returned false on preresolve", pdns.loglevels.Debug)
 	return false
 end
 

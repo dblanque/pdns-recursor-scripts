@@ -332,11 +332,13 @@ local function replace_content(dq, dq_override)
 			-- Don't use this here or we don't get post-resolve 1-to-1 changes
 			-- dq.followupFunction="followCNAMERecords"
 			dq.data.cname_chain = true
+			return dq_type
 		end
 	end
 	return true
 end
 
+local cnameReturnOnReplace = true
 local function preresolve_override(dq)
 	local fn_debug = g.options.debug_pre_override
 
@@ -371,6 +373,10 @@ local function preresolve_override(dq)
 				goto continue
 			end
 			replaced = replace_content(dq, value)
+			if replaced == "CNAME" then
+				replaced = cnameReturnOnReplace
+				break
+			end
 			::continue::
 		end
 	end
@@ -425,6 +431,10 @@ local function preresolve_regex(dq)
 				),
 				pdns.loglevels.Debug
 			)
+		end
+		if replaced == "CNAME" then
+			replaced = cnameReturnOnReplace
+			break
 		end
 		::continue::
 	end

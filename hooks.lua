@@ -86,7 +86,10 @@ function preresolve(dq)
 		end
 
 		pdnslog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
-		result = pre_r_f(dq)
+		local ok, result = pcall(pre_r_f, dq)
+		if not ok then
+			pdnslog(f_name.."(): unhandled exception.")
+		end
 		pdnslog(
 			string.format(
 				"preresolve f(): Returned %s for %s",
@@ -139,7 +142,10 @@ function postresolve(dq)
 			goto continue
 		end
 		pdnslog("postresolve f(): " .. f_name, pdns.loglevels.Debug)
-		result = post_r_f(dq)
+		local ok, result = pcall(post_r_f, dq)
+		if not ok then
+			pdnslog(f_name.."(): unhandled exception.")
+		end
 		if result then
 			return result
 		end

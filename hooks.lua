@@ -96,7 +96,9 @@ function preresolve(dq)
 			pdns.loglevels.Debug
 		)
 
-		if result then break end
+		if result then
+			break
+		end
 		::continue::
 	end
 	pdnslog(
@@ -115,6 +117,10 @@ function preresolve(dq)
 		end
 	end
 
+	pdnslog(
+		"DQ Pre-resolve Result: " .. tostring(result),
+		pdns.loglevels.Debug
+	)
 	return result
 end
 

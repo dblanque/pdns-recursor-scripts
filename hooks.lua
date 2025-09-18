@@ -73,6 +73,7 @@ function preresolve(dq)
 			cname_chain = false,
 		}
 	end
+	local ok
 	local result = false
 
 	for index, f_name in ipairs(g.preresolve_index) do
@@ -86,7 +87,7 @@ function preresolve(dq)
 		end
 
 		pdnslog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
-		local ok, result = pcall(pre_r_f, dq)
+		ok, result = pcall(pre_r_f, dq)
 		if not ok then
 			pdnslog(f_name.."(): unhandled exception.")
 		end
@@ -99,8 +100,11 @@ function preresolve(dq)
 			pdns.loglevels.Debug
 		)
 
-		if result and not dq.data.cname_chain then
-			return result
+		if result then
+			if not dq.data.cname_chain then
+				return result
+			end
+			break
 		end
 		::continue::
 	end
@@ -124,14 +128,11 @@ function preresolve(dq)
 		"DQ Pre-resolve Result: " .. tostring(result),
 		pdns.loglevels.Debug
 	)
-	if result == nil then
-		return false
-	end
 	return result
 end
 
 function postresolve(dq)
-	local result
+	local ok, result
 	for index, f_name in ipairs(g.postresolve_index) do
 		local post_r_f = g.postresolve_functions[f_name]
 		if not post_r_f then
@@ -142,7 +143,7 @@ function postresolve(dq)
 			goto continue
 		end
 		pdnslog("postresolve f(): " .. f_name, pdns.loglevels.Debug)
-		local ok, result = pcall(post_r_f, dq)
+		ok, result = pcall(post_r_f, dq)
 		if not ok then
 			pdnslog(f_name.."(): unhandled exception.")
 		end

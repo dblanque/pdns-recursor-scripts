@@ -92,9 +92,6 @@ local function has_conf_override(dq)
 	end
 	if excl_patterns then
 		for pattern, replace_data in pairs(excl_patterns) do
-			if replace_data.qtype ~= dq.qtype then
-				goto continue
-			end
 			if re.match(dq.qname:toString(), pattern) then
 				return true
 			end
@@ -300,8 +297,14 @@ function cname_override_patch(dq)
 		end
 	end
 
-	pdnslog("cname_override_patch(): has_cname = ".. tostring(has_cname))
-	pdnslog("cname_override_patch(): has_ns = ".. tostring(has_ns))
+	pdnslog(
+		"cname_override_patch(): has_cname = ".. tostring(has_cname),
+		pdns.loglevels.Debug
+	)
+	pdnslog(
+		"cname_override_patch(): has_ns = ".. tostring(has_ns),
+		pdns.loglevels.Debug
+	)
 	if has_cname and has_ns then
 		dq:setRecords({dq_records[cname_index]})
 		return true
@@ -372,6 +375,9 @@ local function preresolve_override(dq)
 		end
 	end
 
+	if replaced and not dq.data.cname_chain then
+		return postresolve(dq)
+	end
 	return replaced
 end
 
@@ -423,6 +429,9 @@ local function preresolve_regex(dq)
 		::continue::
 	end
 
+	if replaced and not dq.data.cname_chain then
+		return postresolve(dq)
+	end
 	return replaced
 end
 

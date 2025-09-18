@@ -88,37 +88,17 @@ function preresolve(dq)
 		if result then
 			pdnslog("preresolve f(): Returned true for " .. f_name, pdns.loglevels.Debug)
 			dq.variable = true
-			--[[
-				if f.dq_ends_in_cname(dq) then
-					local records = dq:getRecords()
-					pdnslog(f.table_to_str(f.followCNAMEChainLocally(records[#records]:getContent())))
-				end
-			]]
+			-- Log Content
+			f.dq_log_record_content(dq)
 			return result
 		end
 		::continue::
 	end
-	pdnslog(
-		"DQ Wants Post-resolve: " .. tostring(dq.data.cname_chain),
-		pdns.loglevels.Debug
-	)
-
-	-- Patch CNAME/NS Overrides
-	if dq.data.cname_chain then
-		dq.variable = true
-
-		if cname_override_patch(dq) then
-			pdnslog("Applying CNAME/NS Patch", pdns.loglevels.Debug)
-			return true
-		end
-	end
-
-	f.dq_log_record_content(dq)
-	pdnslog("Returned false on preresolve", pdns.loglevels.Debug)
 	return false
 end
 
 function postresolve(dq)
+	local result
 	for index, f_name in ipairs(g.postresolve_index) do
 		local post_r_f = g.postresolve_functions[f_name]
 		if not post_r_f then
@@ -129,14 +109,14 @@ function postresolve(dq)
 			goto continue
 		end
 		pdnslog("postresolve f(): " .. f_name, pdns.loglevels.Debug)
-		local result = post_r_f(dq)
-		if result == true then
+		result = post_r_f(dq)
+		if result then
 			dq.variable = true
 			return result
 		end
 		::continue::
 	end
-	return false
+	return result
 end
 
 function maintenance(dq)

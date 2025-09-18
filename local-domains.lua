@@ -256,23 +256,23 @@ local function postresolve_one_to_one(dq)
 		::continue::
 	end
 
-	if not update_dq then
-		return false
+	if update_dq then
+		dq:setRecords(result_dq)
+		pdnslog(
+			string.format(
+				"postresolve_one_to_one(): Result %s",
+				f.table_to_str(
+					result_dq,
+					", ",
+					function (dr) return dr:getContent() end
+				)
+			),
+			pdns.loglevels.Debug
+		)
+		return true
 	end
 
-	dq:setRecords(result_dq)
-	pdnslog(
-		string.format(
-			"postresolve_one_to_one(): Result %s",
-			f.table_to_str(
-				result_dq,
-				", ",
-				function (dr) return dr:getContent() end
-			)
-		),
-		pdns.loglevels.Debug
-	)
-	return true
+	return false
 end
 
 function cname_override_patch(dq)

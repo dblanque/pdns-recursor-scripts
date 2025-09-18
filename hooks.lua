@@ -153,9 +153,6 @@ function postresolve(dq)
 	end
 
 	-- We always want to return true here or it makes weird problems.
-	if result == nil then
-		return true
-	end
 	return true
 end
 

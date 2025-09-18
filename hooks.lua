@@ -86,7 +86,6 @@ function preresolve(dq)
 		result = pre_r_f(dq)
 		if result then
 			pdnslog("preresolve f(): Returned true for " .. f_name, pdns.loglevels.Debug)
-			dq.variable = true
 			-- Log Content
 			f.dq_log_record_content(dq)
 			break
@@ -101,8 +100,6 @@ function preresolve(dq)
 
 	-- Patch CNAME/NS Overrides
 	if dq.data.cname_chain then
-		dq.variable = true
-
 		if cname_override_patch(dq) then
 			pdnslog("Applying CNAME/NS Patch", pdns.loglevels.Debug)
 			return true
@@ -128,7 +125,6 @@ function postresolve(dq)
 		pdnslog("postresolve f(): " .. f_name, pdns.loglevels.Debug)
 		result = post_r_f(dq)
 		if result then
-			dq.variable = true
 			return result
 		end
 		::continue::

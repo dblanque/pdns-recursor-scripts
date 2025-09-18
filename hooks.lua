@@ -82,17 +82,17 @@ function preresolve(dq)
 			)
 			goto continue
 		end
+
 		pdnslog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
 		result = pre_r_f(dq)
 		if result then
 			pdnslog("preresolve f(): Returned true for " .. f_name, pdns.loglevels.Debug)
 			-- Log Content
 			f.dq_log_record_content(dq)
-			break
+			return result
 		end
 		::continue::
 	end
-	if result then return result end
 	pdnslog(
 		"DQ Wants Post-resolve: " .. tostring(dq.data.cname_chain),
 		pdns.loglevels.Debug

@@ -330,7 +330,7 @@ local function replace_content(dq, dq_override)
 		-- If it's a CNAME Replacement, only allow one value.
 		if pdns[dq_type] == pdns.CNAME then
 			-- Don't use this here or we don't get post-resolve 1-to-1 changes
-			-- dq.followupFunction="followCNAMERecords"
+			-- dq.followupFunction = "followCNAMERecords"
 			dq.data.cname_chain = true
 		end
 	end
@@ -368,33 +368,31 @@ local function preresolve_override(dq)
 	if f.table_contains_key(g.options.override_map, qname) then
 		for key, value in pairs(g.options.override_map) do
 			if replaced then break end
-			if key ~= qname then
-				goto continue
+			if key == qname then
+				replaced = replace_content(dq, value)
 			end
-			replaced = replace_content(dq, value)
-			::continue::
 		end
 	end
 
 	for key, value in pairs(g.options.regex_map) do
 		if replaced then break end
-		if not re.match(qname, key) then
-			goto continue
-		end
 
-		replaced = replace_content(dq, value)
-		if fn_debug then
-			pdnslog(
-				string.format(
-					"preresolve_override(): REGEX Replaced Result: %s for '%s' (type %s)",
-					tostring(replaced),
-					tostring(key),
-					tostring(value.qtype)
-				),
-				pdns.loglevels.Debug
-			)
+		if re.match(qname, key) then
+			replaced = replace_content(dq, value)
+			-- Log data
+			if fn_debug then
+				pdnslog(
+					string.format(
+						"preresolve_override(): REGEX Replaced Result: %s for"..
+						" '%s' (type %s)",
+						tostring(replaced),
+						tostring(key),
+						tostring(value.qtype)
+					),
+					pdns.loglevels.Debug
+				)
+			end
 		end
-		::continue::
 	end
 
 	if replaced then
@@ -418,9 +416,9 @@ local function preresolve_ns(dq)
 	if is_excluded_from_local(dq) then
 		return false
 	end
-	
+
 	-- do not pre-resolve if not in our domains
-	if not is_internal_domain(dq, true) then
+	if not is_internal_domain(dq, false) then
 		pdnslog(
 			string.format(
 				"preresolve_ns(): Skipping NS pre-resolve for external record %s",
@@ -448,18 +446,22 @@ local function preresolve_ns(dq)
 
 		if dq.qname:isPartOf(parent_dn) then
 			local new_ns = {}
-			local ns_override_auto
-			local ns_override_map
-			if override_prefixes
-				and not map_only then
-				ns_override_auto = f.table_len(override_prefixes) > 1
+			local use_override_auto
+			local use_override_map
+
+			-- Set override auto map
+			if override_prefixes and not map_only then
+				use_override_auto = f.table_len(override_prefixes) > 1
 			end
+
+			-- Set override map
 			if override_map then
 				if f.table_len(override_map) >= 1 then
-					ns_override_map = f.table_contains_key(override_map, domain)
+					use_override_map = f.table_contains_key(override_map, domain)
 				end
 			end
-			if ns_override_map then
+
+			if use_override_map then
 				for dom, s_list in pairs(override_map) do
 					-- p == prefix, d == domain
 					if dom == domain then
@@ -469,7 +471,7 @@ local function preresolve_ns(dq)
 						break
 					end
 				end
-			elseif ns_override_auto then
+			elseif use_override_auto then
 				new_ns = override_prefixes
 			elseif not map_only then
 				new_ns = {
@@ -478,15 +480,26 @@ local function preresolve_ns(dq)
 					"dns"
 				}
 			end
-			for i, ns in ipairs(new_ns) do
-				dq:addAnswer(pdns.NS, ns .. "." .. domain, 300)
-				if not modified then modified = true end
+
+			-- Replace Contents
+			pdnslog("HERE")
+			pdnslog(f.table_to_str(new_ns))
+			if new_ns then
+				dq.variable = true
+				dq:setRecords({})
+				for i, ns in ipairs(new_ns) do
+					dq:addAnswer(pdns.NS, ns .. "." .. domain, 300)
+					if not modified then
+						modified = true
+					end
+				end
 			end
-			if modified == true then return modified end
+
+			if modified then break end
 		end
 	end
 
-	return false
+	return modified
 end
 
 -- this function is hooked before resolving starts

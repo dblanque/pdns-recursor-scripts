@@ -69,7 +69,9 @@ end
 function preresolve(dq)
 	-- Initialize persistent data table
 	if not dq.data then
-		dq.data = {}
+		dq.data = {
+			cname_chain = false
+		}
 	end
 	local result = false
 
@@ -85,12 +87,16 @@ function preresolve(dq)
 
 		pdnslog("preresolve f(): " .. f_name, pdns.loglevels.Debug)
 		result = pre_r_f(dq)
-		if result then
-			pdnslog("preresolve f(): Returned true for " .. f_name, pdns.loglevels.Debug)
-			-- Log Content
-			f.dq_log_record_content(dq)
-			return result
-		end
+		pdnslog(
+			string.format(
+				"preresolve f(): Returned %s for %s",
+				tostring(result),
+				f_name
+			),
+			pdns.loglevels.Debug
+		)
+
+		if result then break end
 		::continue::
 	end
 	pdnslog(
@@ -98,17 +104,18 @@ function preresolve(dq)
 		pdns.loglevels.Debug
 	)
 
-	-- Patch CNAME/NS Overrides
+	-- Log Content
+	f.dq_log_record_content(dq)
+
 	if dq.data.cname_chain then
+		-- Patch CNAME/NS Overrides
 		if cname_override_patch(dq) then
 			pdnslog("Applying CNAME/NS Patch", pdns.loglevels.Debug)
 			return true
 		end
 	end
 
-	f.dq_log_record_content(dq)
-	pdnslog("Returned false on preresolve", pdns.loglevels.Debug)
-	return false
+	return result
 end
 
 function postresolve(dq)

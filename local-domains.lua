@@ -271,6 +271,7 @@ local function postresolve_one_to_one(dq)
 			),
 			pdns.loglevels.Debug
 		)
+		return true
 	end
 
 	fn_debug("Did not perform one-to-one.")
@@ -496,8 +497,6 @@ local function preresolve_ns(dq)
 			end
 
 			-- Replace Contents
-			pdnslog("HERE")
-			pdnslog(f.table_to_str(new_ns))
 			if new_ns then
 				dq.variable = true
 				dq:setRecords({})

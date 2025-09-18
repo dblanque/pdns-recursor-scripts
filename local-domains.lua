@@ -375,40 +375,6 @@ local function preresolve_override(dq)
 		end
 	end
 
-	if replaced and not dq.data.cname_chain then
-		return postresolve(dq)
-	end
-	return replaced
-end
-
-local function preresolve_regex(dq)
-	local fn_debug = g.options.debug_pre_regex
-
-	if is_excluded_from_local(dq) then
-		return false
-	end
-
-	-- do not pre-resolve if not in our domains
-	if not is_internal_domain(dq, true) then
-		pdnslog(
-			string.format(
-				"preresolve_regex(): Skipping regex pre-resolve for external record %s",
-				dq.qname:toString()
-			),
-			pdns.loglevels.Debug
-		)
-		return false
-	end
-
-	pdnslog(
-		string.format(
-			"preresolve_regex(): Executing regex pre-resolve for external record %s",
-			dq.qname:toString()
-		),
-		pdns.loglevels.Debug
-	)
-	local qname = f.qname_remove_trailing_dot(dq)
-	local replaced = false
 	for key, value in pairs(g.options.regex_map) do
 		if not re.match(qname, key) then
 			goto continue
@@ -418,7 +384,7 @@ local function preresolve_regex(dq)
 		if fn_debug then
 			pdnslog(
 				string.format(
-					"preresolve_regex(): REGEX Replaced Result: %s for '%s' (type %s)",
+					"preresolve_override(): REGEX Replaced Result: %s for '%s' (type %s)",
 					tostring(replaced),
 					tostring(key),
 					tostring(value.qtype)
@@ -595,14 +561,9 @@ end
 -- Add preresolve functions to table, ORDER MATTERS
 if g.options.use_local_forwarder then
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
-	if g.options.override_map and f.table_len(g.options.override_map) >= 1 then
+	if g.options.override_map or g.options.regex_map then
 		mainlog("Loading preresolve_override into pre-resolve functions.", pdns.loglevels.Notice)
 		f.addHookFunction("pre", "preresolve_override", preresolve_override)
-	end
-
-	if g.options.regex_map and f.table_len(g.options.regex_map) >= 1 then
-		mainlog("Loading preresolve_regex into pre-resolve functions.", pdns.loglevels.Notice)
-		f.addHookFunction("pre", "preresolve_regex", preresolve_regex)
 	end
 
 	if g.options.private_zones_ns_override then

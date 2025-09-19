@@ -540,19 +540,75 @@ local function postresolve_local_nxdomain(dq)
 	return false
 end
 
+-- Validate local overrides to check that they don't reference themselves.
+local function validate_local_overrides()
+	local marked_for_deletion_exact = {}
+	local marked_for_deletion_regex = {}
+
+	for _, override in ipairs(g.options.override_map) do
+		for i, v in ipairs(override.content) do
+			if override.name == v then
+				pdnslog(
+					string.format(
+						"Local exact override (%s) cannot reference itself"..
+						" and will be removed", override.name
+					),
+					pdns.loglevels.Error
+				)
+				-- Add parent index for removal and exit loop
+				table.insert(marked_for_deletion_exact, _)
+				break
+			end
+		end
+	end
+
+	for _, override in ipairs(g.options.regex_map) do
+		for i, v in ipairs(override.content) do
+			if override.pattern_compiled:match(v) then
+				pdnslog(
+					string.format(
+						"Local regex pattern override cannot reference itself"..
+						" (%s matches %s) and will be removed",
+						override.pattern, v
+					),
+					pdns.loglevels.Error
+				)
+				-- Add parent index for removal and exit loop
+				table.insert(marked_for_deletion_regex, _)
+				break
+			end
+		end
+	end
+
+	-- Cleanup maps
+
+	-- We need counters to shift the index with each removal.
+	local removed_exact = 0
+	for _, i in ipairs(marked_for_deletion_exact) do
+		table.remove(g.options.override_map, i - removed_exact)
+		removed_exact = removed_exact + 1
+	end
+
+	local removed_regex = 0
+	for _, i in ipairs(marked_for_deletion_regex) do
+		table.remove(g.options.regex_map, i - removed_regex)
+		removed_regex = removed_regex + 1
+	end
+end
+
 -- Add preresolve functions to table, ORDER MATTERS
 if g.options.use_local_forwarder then
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
 	-- Pre-resolve functions
 	if g.options.override_map or g.options.regex_map then
 		-- Compile patterns for optimization and sequential processing
-		local temp_regex_map = {}
 		for _, content in ipairs(g.options.regex_map) do
 			-- Add case insensitivity and optional trailing dot
 			content.pattern = "(?i)"..content.pattern.."\\.?"
 			-- Compile pattern
 			content.pattern_compiled = re.new(content.pattern)
 		end
+		validate_local_overrides()
 
 		mainlog("Loading preresolve_override into pre-resolve functions.", pdns.loglevels.Notice)
 		f.addHookFunction("pre", "preresolve_override", preresolve_override)

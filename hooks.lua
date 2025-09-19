@@ -101,9 +101,6 @@ function preresolve(dq)
 		)
 
 		if result then
-			if not dq.data.cname_chain then
-				return result
-			end
 			break
 		end
 		::continue::
@@ -115,15 +112,6 @@ function preresolve(dq)
 
 	-- Log Content
 	f.dq_log_record_content(dq)
-
-	if dq.data.cname_chain then
-		-- Patch CNAME/NS Overrides
-		if cname_override_patch(dq) then
-			pdnslog("Applying CNAME/NS Patch", pdns.loglevels.Debug)
-			return true
-		end
-	end
-
 	pdnslog(
 		"DQ Pre-resolve Result: " .. tostring(result),
 		pdns.loglevels.Debug

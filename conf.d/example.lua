@@ -40,6 +40,10 @@ return {
 		}
 	},
 	default_ttl = 900,
+	-- For local cname chain resolution
+	cname_resolver_enabled = false
+	cname_resolver_address = "127.0.0.1"
+	cname_resolver_port = 53
 
 	-- Malware Filter Options
 	use_dnsbl = false, -- If you want to preresolve with DNSBL files (.list|.txt) in the dnsbl.d directory

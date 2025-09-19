@@ -1,5 +1,5 @@
 -- See https://github.com/PowerDNS/pdns/blob/6cb1c13b4fb91f0d71c372dea74a9ace16cfea03/contrib/xdp.py#L12
-SUPPORTED_CNAME_POINTER = { "A", "AAAA", "MX", "TXT", "SRV", "HTTPS" }
+SUPPORTED_CNAME_TARGET = { "A", "AAAA", "MX", "TXT", "SRV", "HTTPS" }
 REVERSE_QTYPES = {
 	[65535] = '*',
 	[29] = 'LOC',

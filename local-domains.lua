@@ -122,7 +122,7 @@ end
 function valid_type_replace_for_cname(dq_type, replace_type)
 	local types_match = dq_type == replace_type
 	local valid_type_replaces = (
-		f.table_contains(SUPPORTED_CNAME_POINTER, REVERSE_QTYPES[dq_type])
+		f.table_contains(SUPPORTED_CNAME_TARGET, REVERSE_QTYPES[dq_type])
 		and replace_type == pdns.CNAME
 	)
 	return types_match or valid_type_replaces
@@ -182,7 +182,9 @@ local function postresolve_one_to_one(dq)
 
 	for _, record in ipairs(dq_records) do
 		local record_content = record:getContent()
-		f.dr_log_content(record_content)
+		if g.options.debug_post_one_to_one then
+			f.dr_log_content(record_content)
+		end
 		if not record_content then
 			goto continue
 		end

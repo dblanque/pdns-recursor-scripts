@@ -22,14 +22,17 @@ validate_dig()
 
 function log_resolve_dns_responses(responses)
 	for _, r in ipairs(responses) do
-		pdnslog(
-			string.format(
-				"Answer: %s %s %s",
-				r.type,
-				r.ttl,
-				r.response
-			)
+		local msg = string.format(
+			"Answer: %s %s %s",
+			r.type,
+			r.ttl,
+			r.response
 		)
+		if pdns then
+			pdnslog(msg, pdns.loglevels.Debug)
+		else
+			print(msg)
+		end
 	end
 end
 

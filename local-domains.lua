@@ -49,7 +49,8 @@ local function is_internal_domain(dq, check_main)
 			"Checked if %s is internal (%s).",
 			dq.qname:toString(),
 			tostring(r)
-		)
+		),
+		pdns.loglevels.Debug
 	)
 	return r
 end
@@ -431,9 +432,6 @@ local function preresolve_override(dq)
 
 	if replaced then
 		dq.variable = true
-		-- if dq.data.cname_chain then
-		-- 	return replaced
-		-- end
 		return postresolve(dq)
 	end
 

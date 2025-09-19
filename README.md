@@ -34,6 +34,14 @@ apt update -y
 apt install lua-rex-pcre -y || apt install lua-rex-pcre2 -y
 ```
 
+You must have the `dig` command installed as well, for full cname chain
+resolution on local domain overrides.
+
+```
+apt update -y
+apt install dnsutils
+```
+
 # INSTRUCTIONS
 
 To use this script-set, after you've ensured the requirements are met you can

@@ -9,6 +9,7 @@ else
 	return false
 end
 require "ip-translate"
+require "resolve-dns"
 
 -- List of private domains
 local local_domain_overrides = newDS()
@@ -277,6 +278,16 @@ local function postresolve_one_to_one(dq)
 	return true
 end
 
+--- Adds DNS Answers for full CNAME Chain Resolution.
+-- @param dq userdata
+-- @param chain_result table of { type=string, ttl=number, response=string }
+-- @return nil
+local function add_chain_answers(dq, chain_result)
+	for _, r in ipairs(chain_result) do
+		dq:addAnswer(r.type, r.response, r.ttl)
+	end
+end
+
 local function replace_content(dq, dq_override)
 	local dq_type = dq_override["qtype"]
 	local dq_replace_any = dq_override["replace_any"]
@@ -297,6 +308,14 @@ local function replace_content(dq, dq_override)
 			-- Don't use this here or we don't get post-resolve 1-to-1 changes
 			-- dq.followupFunction = "followCNAMERecords"
 			dq.data.cname_chain = true
+			if i == #dq_values then
+				if dq.qtype == pdns.A or dq.qtype == pdns.AAAA then
+					add_chain_answers(dq, resolve_dns(v, "A", "127.0.0.1:53"))
+					add_chain_answers(dq, resolve_dns(v, "AAAA", "127.0.0.1:53"))
+				else
+					add_chain_answers(dq, resolve_dns(v, dq.qtype, "127.0.0.1:53"))
+				end
+			end
 		end
 	end
 	return true

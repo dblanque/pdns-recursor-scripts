@@ -48,6 +48,10 @@ function f.empty_str(s)
 end
 
 function f.table_contains(tab, val, has_keys)
+	if not tab then
+		return false
+	end
+
 	if has_keys then
 		for k, v in pairs(tab) do
 			if v == val then
@@ -136,10 +140,17 @@ function f.string_split(inputstr, sep)
 end
 
 function f.qname_remove_trailing_dot(dq)
-	if string.sub(tostring(dq.qname), -1) == "." then
-		return tostring(string.sub(tostring(dq.qname), 1, -2))
+	local qname
+	if type(dq) == "string" then
+		qname = dq
+	else
+		qname = dq.qname:toStringNoDot()
 	end
-	return tostring(dq.qname)
+
+	if string.sub(qname, -1) == "." then
+		return tostring(string.sub(qname, 1, -2))
+	end
+	return tostring(qname)
 end
 
 -- returns true if the given file exists

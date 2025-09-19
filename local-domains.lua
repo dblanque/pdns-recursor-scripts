@@ -9,7 +9,8 @@ else
 	return false
 end
 require "ip-translate"
-require "resolve-dns"
+require "pdns-constants"
+require "resolve-cname-chain"
 
 -- List of private domains
 local local_domain_overrides = newDS()
@@ -118,13 +119,11 @@ local function loadDSFile(filename, suffixMatchGroup, domainTable)
 	end
 end
 
-local function valid_type_replace(dq_type, replace_type)
+function valid_type_replace_for_cname(dq_type, replace_type)
 	local types_match = dq_type == replace_type
 	local valid_type_replaces = (
-		-- A is not replaced with CNAME
-		(dq_type == pdns.A and replace_type == pdns.CNAME) or
-		-- AAAA is not replaced with CNAME
-		(dq_type == pdns.AAAA and replace_type == pdns.CNAME)
+		f.table_contains(SUPPORTED_CNAME_POINTER, REVERSE_QTYPES[dq_type])
+		and replace_type == pdns.CNAME
 	)
 	return types_match or valid_type_replaces
 end
@@ -278,44 +277,83 @@ local function postresolve_one_to_one(dq)
 	return true
 end
 
---- Adds DNS Answers for full CNAME Chain Resolution.
+-- Adds local override content to a Domain Question.
 -- @param dq userdata
--- @param chain_result table of { type=string, ttl=number, response=string }
--- @return nil
-local function add_chain_answers(dq, chain_result)
-	for _, r in ipairs(chain_result) do
-		dq:addAnswer(r.type, r.response, r.ttl)
-	end
-end
+-- @param dq_override table of { qtype=string, content=table }
+-- @return bool
+local function add_content(dq, dq_override, qname_override)
+	-- Top level Query Name
+	local qname = qname_override or dq.qname:toString()
 
-local function replace_content(dq, dq_override)
-	local dq_type = dq_override["qtype"]
-	local dq_replace_any = dq_override["replace_any"]
-	if (
-		not valid_type_replace(dq.qtype, pdns[dq_type]) and
-		not dq_replace_any
-	) then
+	-- dr: Domain Record
+	local dr_type = dq_override.qtype
+	local dr_replace_any = dq_override.replace_any
+	local function can_replace(source_qtype, target_qtype)
+		if (
+			not valid_type_replace_for_cname(source_qtype, target_qtype) and
+			not dr_replace_any
+		) then
+			return false
+		end
+		return true
+	end
+
+	if not can_replace(dq.qtype, pdns[dr_type]) then
 		return false
 	end
 
-	local dq_values = dq_override["content"]
-	local dq_ttl = dq_override["ttl"] or g.options.default_ttl
-	for i, v in ipairs(dq_values) do
-		-- Add answer
-		dq:addAnswer(pdns[dq_type], v, dq_ttl) -- Type, Value, TTL
+	local dr_values = dq_override.content
+	local dr_ttl = dq_override.ttl or g.options.default_ttl
+	local sub_dr = nil
+
+	for i, dr_override in ipairs(dr_values) do
 		-- If it's a CNAME Replacement, only allow one value.
-		if pdns[dq_type] == pdns.CNAME then
+		if pdns[dr_type] == pdns.CNAME then
 			-- Don't use this here or we don't get post-resolve 1-to-1 changes
 			-- dq.followupFunction = "followCNAMERecords"
+
+			-- Add answer with previous CNAME in chain or main qname
+			dq:addRecord(
+				pdns[dr_type], dr_override, 1, dr_ttl, dr_values[i-1] or qname)
+				-- Type, Value, Place, TTL, Name
 			dq.data.cname_chain = true
-			if i == #dq_values then
-				if dq.qtype == pdns.A or dq.qtype == pdns.AAAA then
-					add_chain_answers(dq, resolve_dns(v, "A", "127.0.0.1:53"))
-					add_chain_answers(dq, resolve_dns(v, "AAAA", "127.0.0.1:53"))
-				else
-					add_chain_answers(dq, resolve_dns(v, dq.qtype, "127.0.0.1:53"))
+
+			-- Check if there are local cname overrides, add them as well.
+			if f.table_contains_key(g.options.override_map, dr_override) then
+				for key, value in pairs(g.options.override_map) do
+					if key == dr_override and can_replace(dq.qtype, pdns[value.qtype])
+					then
+						sub_dr = value
+						break
+					end
 				end
 			end
+
+			for key, value in pairs(g.options.regex_map) do
+				if sub_dr then break end
+				local matches = re.match(dr_override, key)
+				if matches and can_replace(dq.qtype, pdns[value.qtype]) then
+					sub_dr = value
+				end
+			end
+
+			if g.options.cname_resolver_enabled then
+				if sub_dr then
+					-- Add local cname overrides recursively.
+					add_content(dq, sub_dr, dr_override)
+				else
+					--[[
+						We need to do this with dig instead of PowerDNS's
+						native followupFunction "FollowCNAMERecords" as it
+						does not support postresolve execution once the
+						result has been modified in a preresolve function.
+					]]
+					follow_cname_chain(dq, qname, dr_override)
+				end
+			end
+		else
+			-- Add answer
+			dq:addAnswer(pdns[dr_type], dr_override, dr_ttl) -- Type, Value, TTL
 		end
 	end
 	return true
@@ -353,7 +391,7 @@ local function preresolve_override(dq)
 		for key, value in pairs(g.options.override_map) do
 			if replaced then break end
 			if key == qname then
-				replaced = replace_content(dq, value)
+				replaced = add_content(dq, value)
 			end
 		end
 	end
@@ -362,38 +400,27 @@ local function preresolve_override(dq)
 		if replaced then break end
 		local matches = re.match(qname, key) ~= nil
 
-		pdnslog(
-			string.format(
-				"%s matches %s: %s",
-				qname,
-				key,
-				matches
-			),
-			pdns.loglevels.Debug
-		)
+		if fn_debug then
+			pdnslog(
+				string.format(
+					"preresolve_override(): %s matches %s: %s",
+					qname,
+					key,
+					matches
+				),
+				pdns.loglevels.Debug
+			)
+		end
 		if matches then
-			replaced = replace_content(dq, value)
-			-- Log data
-			if fn_debug then
-				pdnslog(
-					string.format(
-						"preresolve_override(): REGEX Replaced Result: %s for"..
-						" '%s' (type %s)",
-						tostring(replaced),
-						tostring(key),
-						tostring(value.qtype)
-					),
-					pdns.loglevels.Debug
-				)
-			end
+			replaced = add_content(dq, value)
 		end
 	end
 
 	if replaced then
 		dq.variable = true
-		if dq.data.cname_chain then
-			return replaced
-		end
+		-- if dq.data.cname_chain then
+		-- 	return replaced
+		-- end
 		return postresolve(dq)
 	end
 
@@ -407,12 +434,8 @@ local function preresolve_rpr(dq)
 		return false
 	end
 
-	-- If it's a CNAME Local Override skip this.
-	if dq.data.cname_chain then
-		return true
-	end
-
-	if has_conf_override(dq) then
+	-- If it's a CNAME override or has any type of local override skip this.
+	if dq.data.cname_chain or has_conf_override(dq) then
 		pdnslog(
 			string.format(
 				"preresolve_rpr(): Skipping reverse proxy replacement"..

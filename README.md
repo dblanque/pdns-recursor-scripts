@@ -167,8 +167,14 @@ return {
 	default_ttl = 900,
 	-- For local cname chain resolution
 	cname_resolver_enabled = false
+	-- Usually you won't need to change the address.
 	cname_resolver_address = "127.0.0.1"
+	-- Change this if your PowerDNS Recursor is on a non-standard port.
 	cname_resolver_port = 53
+
+	-- Extra Debug Logging options
+	debug_pre_override = false,
+	debug_post_one_to_one = false,
 
 	-- Malware Filter Options
 	use_dnsbl = false, -- If you want to preresolve with DNSBL files (.list|.txt) in the dnsbl.d directory

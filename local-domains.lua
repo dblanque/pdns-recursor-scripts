@@ -27,8 +27,8 @@ end
 
 -- Populate Local Conf. Overrides
 if g.options.override_map then
-	for _, domain in ipairs(g.options.override_map) do
-		conf_domain_overrides:add(newDN(domain))
+	for _, value in ipairs(g.options.override_map) do
+		conf_domain_overrides:add(newDN(value.name))
 	end
 end
 
@@ -93,10 +93,10 @@ local function has_conf_override(dq)
 		return false
 	end
 	if excl_patterns then
-		for pattern, replace_data in pairs(excl_patterns) do
+		for idx, value in ipairs(excl_patterns) do
 			if (
-				re.match(dq.qname:toString(), pattern) and
-				pdns[replace_data.qtype] == dq.qtype
+				re.match(dq.qname:toString(), value.pattern_compiled) and
+				pdns[value.qtype] == dq.qtype
 			) then
 				return true
 			end
@@ -117,15 +117,6 @@ local function loadDSFile(filename, suffixMatchGroup, domainTable)
 	else
 		mainlog("loadDSFile(): could not open file " .. filename, pdns.loglevels.Warning)
 	end
-end
-
-function valid_type_replace_for_cname(dq_type, replace_type)
-	local types_match = dq_type == replace_type
-	local valid_type_replaces = (
-		f.table_contains(SUPPORTED_CNAME_TARGET, REVERSE_QTYPES[dq_type])
-		and replace_type == pdns.CNAME
-	)
-	return types_match or valid_type_replaces
 end
 
 local function postresolve_one_to_one(dq)
@@ -279,31 +270,89 @@ local function postresolve_one_to_one(dq)
 	return true
 end
 
+--- Adds DNS Answers for full CNAME Chain Resolution.
+-- @param source_qtype int or string
+-- @param target_qtype int or string
+-- @return bool
+local function can_replace(source_qtype, target_qtype, replace_any)
+	if replace_any then 
+		return true
+	end
+
+	if not type(source_qtype) == "number" then
+		source_qtype = REVERSE_QTYPES[source_qtype]
+	end
+	if not type(target_qtype) == "number" then
+		target_qtype = REVERSE_QTYPES[target_qtype]
+	end
+	if not source_qtype or not tonumber(source_qtype) then
+		pdnslog(
+			string.format("Invalid source_qtype (%s)", tostring(source_qtype)),
+			pdns.loglevels.Error
+		)
+	end
+	if not target_qtype or not tonumber(target_qtype) then
+		pdnslog(
+			string.format("Invalid target_qtype (%s)", tostring(target_qtype)),
+			pdns.loglevels.Error
+		)
+	end
+
+	local types_match = source_qtype == target_qtype
+	local valid_type_replaces_cname = (
+		f.table_contains(SUPPORTED_CNAME_TARGET, REVERSE_QTYPES[source_qtype])
+		and target_qtype == pdns.CNAME
+	)
+
+	if types_match or valid_type_replaces_cname or replace_any then
+		return true
+	end
+	return false
+end
+
+local function get_local_record_override(record_name, record_type, skip_replace_check)
+	if g.options.override_map then
+		for idx, value in ipairs(g.options.override_map) do
+			local can_replace = (
+				skip_replace_check or
+				-- Won't call if skip_replace_check true
+				can_replace(record_type, pdns[value.qtype], value.replace_any)
+			)
+			if value.name == record_name and can_replace then
+				return value
+			end
+		end
+	end
+
+	if g.options.regex_map then
+		for idx, value in ipairs(g.options.regex_map) do
+			-- Add case insensitiveness
+			local matches = value.pattern_compiled:match(record_name)
+			local can_replace = (
+				skip_replace_check or
+				-- Won't call if skip_replace_check true
+				can_replace(record_type, pdns[value.qtype], value.replace_any)
+			)
+			if matches ~= nil and can_replace then
+				return value
+			end
+		end
+	end
+
+	return nil
+end
+
+
 -- Adds local override content to a Domain Question.
 -- @param dq userdata
 -- @param dq_override table of { qtype=string, content=table }
 -- @return bool
 local function add_content(dq, dq_override, qname_override)
 	-- Top level Query Name
-	local qname = qname_override or dq.qname:toString()
+	local qname = qname_override or dq.qname:toStringNoDot()
 
 	-- dr: Domain Record
 	local dr_type = dq_override.qtype
-	local dr_replace_any = dq_override.replace_any
-	local function can_replace(source_qtype, target_qtype)
-		if (
-			not valid_type_replace_for_cname(source_qtype, target_qtype) and
-			not dr_replace_any
-		) then
-			return false
-		end
-		return true
-	end
-
-	if not can_replace(dq.qtype, pdns[dr_type]) then
-		return false
-	end
-
 	local dr_values = dq_override.content
 	local dr_ttl = dq_override.ttl or g.options.default_ttl
 	local sub_dr = nil
@@ -321,23 +370,7 @@ local function add_content(dq, dq_override, qname_override)
 			dq.data.cname_chain = true
 
 			-- Check if there are local cname overrides, add them as well.
-			if f.table_contains_key(g.options.override_map, dr_override) then
-				for key, value in pairs(g.options.override_map) do
-					if key == dr_override and can_replace(dq.qtype, pdns[value.qtype])
-					then
-						sub_dr = value
-						break
-					end
-				end
-			end
-
-			for key, value in pairs(g.options.regex_map) do
-				if sub_dr then break end
-				local matches = re.match(dr_override, key)
-				if matches and can_replace(dq.qtype, pdns[value.qtype]) then
-					sub_dr = value
-				end
-			end
+			sub_dr = get_local_record_override(dr_override, dq.qtype)
 
 			if g.options.cname_resolver_enabled then
 				if sub_dr then
@@ -364,7 +397,7 @@ end
 local function preresolve_override(dq)
 	local fn_debug = g.options.debug_pre_override
 
-	-- do not pre-resolve if not in our domains
+	-- do not pre-resolve if manually excluded
 	if is_excluded_from_local(dq) then
 		return false
 	end
@@ -387,35 +420,13 @@ local function preresolve_override(dq)
 		),
 		pdns.loglevels.Debug
 	)
-	local qname = f.qname_remove_trailing_dot(dq)
 	local replaced = false
-	if f.table_contains_key(g.options.override_map, qname) then
-		for key, value in pairs(g.options.override_map) do
-			if replaced then break end
-			if key == qname then
-				replaced = add_content(dq, value)
-			end
-		end
-	end
+	local content_replace = get_local_record_override(
+		f.qname_remove_trailing_dot(dq), dq.qtype)
+		-- record_name, record_type
 
-	for key, value in pairs(g.options.regex_map) do
-		if replaced then break end
-		local matches = re.match(qname, key) ~= nil
-
-		if fn_debug then
-			pdnslog(
-				string.format(
-					"preresolve_override(): %s matches %s: %s",
-					qname,
-					key,
-					matches
-				),
-				pdns.loglevels.Debug
-			)
-		end
-		if matches then
-			replaced = add_content(dq, value)
-		end
+	if content_replace then
+		replaced = add_content(dq, content_replace)
 	end
 
 	if replaced then
@@ -431,8 +442,24 @@ end
 
 -- this function is hooked before resolving starts
 local function preresolve_rpr(dq)
-	-- do not pre-resolve if not in our domains
+	-- do not pre-resolve if manually excluded
 	if is_excluded_from_local(dq) then
+		return false
+	end
+
+	if g.options.exclude_main_domain_from_irp == nil then
+		check_main = true
+	else
+		check_main = not g.options.exclude_main_domain_from_irp
+	end
+	if not is_internal_domain(dq, check_main) then
+		pdnslog(
+			string.format(
+				"preresolve_rpr(): Skipping reverse proxy replacement pre-resolve for external record %s",
+				dq.qname:toString()
+			),
+			pdns.loglevels.Debug
+		)
 		return false
 	end
 
@@ -449,33 +476,14 @@ local function preresolve_rpr(dq)
 		return false
 	end
 
-	local exclude_main_domain_from_irp
-	if g.options.exclude_main_domain_from_irp == nil then
-		check_main = true
-	else
-		check_main = not g.options.exclude_main_domain_from_irp
-	end
-	if not is_internal_domain(dq, check_main)
-	then
-		pdnslog(
-			string.format(
-				"preresolve_rpr(): Skipping reverse proxy replacement pre-resolve for external record %s",
-				dq.qname:toString()
-			),
-			pdns.loglevels.Debug
-		)
-		return false
-	else
-		pdnslog(
-			string.format(
-				"preresolve_rpr(): Executing reverse proxy replacement pre-resolve for external record %s",
-				dq.qname:toString()
-			),
-			pdns.loglevels.Debug
-		)
-	end
-
 	local replaced = false
+	pdnslog(
+		string.format(
+			"preresolve_rpr(): Executing reverse proxy replacement pre-resolve for external record %s",
+			dq.qname:toString()
+		),
+		pdns.loglevels.Debug
+	)
 	if dq.qtype == pdns.A or dq.qtype == pdns.ANY then
 		if g.options.internal_reverse_proxy_v4 then
 			replaced = true
@@ -504,11 +512,50 @@ local function preresolve_rpr(dq)
 	return replaced
 end
 
+-- Check if servfail should be replaced with nxdomain
+local function postresolve_local_nxdomain(dq)
+	-- do not check if not in our domains
+	if is_excluded_from_local(dq) then
+		return false
+	end
+
+	if not is_internal_domain(dq, false) then
+		return false
+	end
+
+	pdnslog(
+		string.format(
+			"postresolve_local_nxdomain(): No resolution for local domain record %s (%s)",
+			dq.qname:toString(),
+			REVERSE_QTYPES[dq.qtype]
+		),
+		pdns.loglevels.Debug
+	)
+
+	local records = dq:getRecords()
+	if not records or #records < 1 then
+		dq.extendedErrorCode = 0
+		dq.extendedErrorExtra = "No such internal name exists"
+		dq.rcode = pdns.NXDOMAIN
+		return true
+	end
+	return false
+end
+
 -- Add preresolve functions to table, ORDER MATTERS
 if g.options.use_local_forwarder then
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
 	-- Pre-resolve functions
 	if g.options.override_map or g.options.regex_map then
+		-- Compile patterns for optimization and sequential processing
+		local temp_regex_map = {}
+		for _, content in ipairs(g.options.regex_map) do
+			-- Add case insensitivity and optional trailing dot
+			content.pattern = "(?i)"..content.pattern.."\\.?"
+			-- Compile pattern
+			content.pattern_compiled = re.new(content.pattern)
+		end
+
 		mainlog("Loading preresolve_override into pre-resolve functions.", pdns.loglevels.Notice)
 		f.addHookFunction("pre", "preresolve_override", preresolve_override)
 	end
@@ -517,6 +564,10 @@ if g.options.use_local_forwarder then
 	f.addHookFunction("pre", "preresolve_rpr", preresolve_rpr)
 
 	-- Post-resolve functions
+	if g.options.override_map or g.options.regex_map then
+		f.addHookFunction(
+			"post", "postresolve_local_nxdomain", postresolve_local_nxdomain)
+	end
 	if g.options.use_one_to_one then
 		mainlog(
 			"Loading postresolve_one_to_one into post-resolve "..

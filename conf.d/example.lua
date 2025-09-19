@@ -16,23 +16,12 @@ return {
 	internal_reverse_proxy_v4 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
 	internal_reverse_proxy_v6 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
 	use_local_forwarder = false,
-	private_zones_ns_override_map_only = false,
-	private_zones_ns_override_map = {
-		["example.com"] = {"ns1","ns2","dns","dot","doh"}
-	},
-	private_zones_ns_override = false,
 	exclude_main_domain_from_irp = true,
 	exclude_local_forwarder_domains = {
 		"external.example.com"
 	},
 	exclude_local_forwarder_domains_re = {
 		"^(sub1|sub2).example.com$"
-	},
-	exclude_local_fn_domains = {
-		["preresolve_ns"]={"external.example.org"}
-	},
-	exclude_local_fn_domains_re = {
-		["preresolve_rpr"]={"^(sub1|sub2).example.org$"}
 	},
 	override_map = {
 		["something.example.com"]={

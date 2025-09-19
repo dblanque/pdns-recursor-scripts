@@ -277,43 +277,6 @@ local function postresolve_one_to_one(dq)
 	return true
 end
 
-function cname_override_patch(dq)
-	--[[
-		Function to patch CNAME on NS Record Replacements.
-	]]
-	local dq_records = dq:getRecords()
-	local cname_index = nil
-	local has_cname = false
-	local has_ns = false
-	if not dq_records then
-		return false
-	end
-
-	for _idx, record in ipairs(dq_records) do
-		-- This will only take the last CNAME in the chain
-		if record.type == pdns.CNAME then
-			has_cname = true
-			cname_index = _idx
-		elseif record.type == pdns.NS then
-			has_ns = true
-		end
-	end
-
-	pdnslog(
-		"cname_override_patch(): has_cname = ".. tostring(has_cname),
-		pdns.loglevels.Debug
-	)
-	pdnslog(
-		"cname_override_patch(): has_ns = ".. tostring(has_ns),
-		pdns.loglevels.Debug
-	)
-	if has_cname and has_ns then
-		dq:setRecords({dq_records[cname_index]})
-		return true
-	end
-	return false
-end
-
 local function replace_content(dq, dq_override)
 	local dq_type = dq_override["qtype"]
 	local dq_replace_any = dq_override["replace_any"]
@@ -418,102 +381,6 @@ local function preresolve_override(dq)
 	return false
 end
 
-local function preresolve_ns(dq)
-	if dq.qtype ~= pdns.NS then
-		return false
-	end
-
-	if not g.options.private_zones_ns_override then
-		return false
-	end
-
-	if is_excluded_from_local(dq) then
-		return false
-	end
-
-	-- do not pre-resolve if not in our domains
-	if not is_internal_domain(dq, false) then
-		pdnslog(
-			string.format(
-				"preresolve_ns(): Skipping NS pre-resolve for external record %s",
-				dq.qname:toString()
-			),
-			pdns.loglevels.Debug
-		)
-		return false
-	end
-
-	pdnslog(
-		string.format(
-			"preresolve_ns(): Executing NS pre-resolve for external record %s",
-			dq.qname:toString()
-		),
-		pdns.loglevels.Debug
-	)
-	local modified = false
-	local override_map = g.options.private_zones_ns_override_map
-	local override_prefixes = g.options.private_zones_ns_override_prefixes
-	local map_only = g.options.private_zones_ns_override_map_only
-
-	for i, domain in ipairs(local_domain_overrides_t) do
-		local parent_dn = newDN(domain)
-
-		if dq.qname:isPartOf(parent_dn) then
-			local new_ns = {}
-			local use_override_auto
-			local use_override_map
-
-			-- Set override auto map
-			if override_prefixes and not map_only then
-				use_override_auto = f.table_len(override_prefixes) > 1
-			end
-
-			-- Set override map
-			if override_map then
-				if f.table_len(override_map) >= 1 then
-					use_override_map = f.table_contains_key(override_map, domain)
-				end
-			end
-
-			if use_override_map then
-				for dom, s_list in pairs(override_map) do
-					-- p == prefix, d == domain
-					if dom == domain then
-						for i, suffix in ipairs(s_list) do
-							table.insert(new_ns, suffix)
-						end
-						break
-					end
-				end
-			elseif use_override_auto then
-				new_ns = override_prefixes
-			elseif not map_only then
-				new_ns = {
-					"ns1",
-					"ns2",
-					"dns"
-				}
-			end
-
-			-- Replace Contents
-			if new_ns then
-				dq.variable = true
-				dq:setRecords({})
-				for i, ns in ipairs(new_ns) do
-					dq:addAnswer(pdns.NS, ns .. "." .. domain, 300)
-					if not modified then
-						modified = true
-					end
-				end
-			end
-
-			if modified then break end
-		end
-	end
-
-	return modified
-end
-
 -- this function is hooked before resolving starts
 local function preresolve_rpr(dq)
 	-- do not pre-resolve if not in our domains
@@ -596,16 +463,16 @@ end
 -- Add preresolve functions to table, ORDER MATTERS
 if g.options.use_local_forwarder then
 	loadDSFile(g.pdns_scripts_path.."/local-domains.list", local_domain_overrides, local_domain_overrides_t)
+	-- Pre-resolve functions
 	if g.options.override_map or g.options.regex_map then
 		mainlog("Loading preresolve_override into pre-resolve functions.", pdns.loglevels.Notice)
 		f.addHookFunction("pre", "preresolve_override", preresolve_override)
 	end
 
-	if g.options.private_zones_ns_override then
-		mainlog("Loading preresolve_ns into pre-resolve functions.", pdns.loglevels.Notice)
-		f.addHookFunction("pre", "preresolve_ns", preresolve_ns)
-	end
+	mainlog("Loading preresolve_rpr into pre-resolve functions.", pdns.loglevels.Notice)
+	f.addHookFunction("pre", "preresolve_rpr", preresolve_rpr)
 
+	-- Post-resolve functions
 	if g.options.use_one_to_one then
 		mainlog(
 			"Loading postresolve_one_to_one into post-resolve "..
@@ -615,8 +482,6 @@ if g.options.use_local_forwarder then
 		f.addHookFunction("post", "postresolve_one_to_one", postresolve_one_to_one)
 	end
 
-	mainlog("Loading preresolve_rpr into pre-resolve functions.", pdns.loglevels.Notice)
-	f.addHookFunction("pre", "preresolve_rpr", preresolve_rpr)
 else
 	mainlog("Local Domain Forwarder Override not enabled. Set overrides in file overrides.lua", pdns.loglevels.Notice)
 end

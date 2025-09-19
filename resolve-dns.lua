@@ -20,12 +20,25 @@ local function validate_dig()
 end
 validate_dig()
 
+function log_resolve_dns_responses(responses)
+	for _, r in ipairs(responses) do
+		pdnslog(
+			string.format(
+				"Answer: %s %s %s",
+				r.type,
+				r.ttl,
+				r.response
+			)
+		)
+	end
+end
+
 --- Resolves DNS records with TTL and optional custom DNS server.
 -- @param hostname string (e.g., "example.com")
 -- @param record_type string (e.g., "A", "TXT", "MX") — default "A"
 -- @param dns_server string (optional, e.g., "8.8.8.8")
--- @return table of { type=string, ttl=number, response=string }
-function resolve_dns(hostname, record_type, dns_server)
+-- @return table of { name=string, type=string, ttl=number, response=string }
+function resolve_dns(hostname, record_type, dns_server, dns_port)
 	if not dig_validated then
 		return {}
 	end
@@ -37,11 +50,18 @@ function resolve_dns(hostname, record_type, dns_server)
 
 	-- Build server part: if provided, use @server
 	local server_arg = dns_server and ("@" .. dns_server) or ""
+	local port_arg = dns_port and ("-p " .. tostring(dns_port)) or ""
+	local dig_args = "+noall +answer +timeout=3 +tries=3 +ttl"
 
 	while true do
 		-- We use +noall +answer +ttl to get structured output with TTL
-		local cmd = string.format("dig +noall +answer +ttl %s %s %s",
-								  server_arg, record_type, current_target)
+		local cmd = string.format("dig %s %s %s %s %s",
+				dig_args, server_arg, port_arg, record_type, current_target)
+
+		if pdns then
+			pdnslog(cmd, pdns.loglevels.Debug)
+		end
+
 		local handle = io.popen(cmd)
 		if not handle then
 			error("Failed to execute dig: " .. cmd)
@@ -73,11 +93,11 @@ function resolve_dns(hostname, record_type, dns_server)
 			local name, ttl, class, rtype, rdata = 
 				line:match("^([^%s]+)%s+(%d+)%s+([A-Z]+)%s+([A-Z0-9_]+)%s+(.+)$")
 
-			-- print("name: "..name)
-			-- print("ttl: "..ttl)
-			-- print("class: "..class)
-			-- print("rtype: "..rtype)
-			-- print("rdata: "..rdata)
+			-- pdnslog("name: "..name)
+			-- pdnslog("ttl: "..ttl)
+			-- pdnslog("class: "..class)
+			-- pdnslog("rtype: "..rtype)
+			-- pdnslog("rdata: "..rdata)
 			if not rtype then
 				-- Skip malformed/unparsed lines
 				goto continue
@@ -104,6 +124,7 @@ function resolve_dns(hostname, record_type, dns_server)
 			end
 
 			table.insert(parsed_lines, {
+				name = name,
 				type = rtype,
 				ttl = ttl,
 				response = rdata

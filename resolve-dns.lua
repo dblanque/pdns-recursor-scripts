@@ -51,6 +51,11 @@ function resolve_dns(hostname, record_type, dns_server, dns_port)
 	-- Build server part: if provided, use @server
 	local server_arg = dns_server and ("@" .. dns_server) or ""
 	local port_arg = dns_port and ("-p " .. tostring(dns_port)) or ""
+
+	--[[
+		We need re-tries and a timeout setting to avoid PowerDNS Lockups on
+		initial Resolution for CNAME chains with local overrides.
+	]]
 	local dig_args = "+noall +answer +timeout=3 +tries=3 +ttl"
 
 	while true do

@@ -199,7 +199,7 @@ options in the `/etc/powerdns/pdns-recursor-scripts/conf.d/malware-filter.lua`.
 
 ### Whitelist
 
-To whitelist domains create a `/etc/powerdns/pdns-recursor-scripts/conf.d/dnsbl_whitelist.txt`
+To whitelist domains create a `/etc/powerdns/pdns-recursor-scripts/conf.d/whitelist.txt`
 file with one domain per line.
 
 ```lua

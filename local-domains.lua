@@ -588,8 +588,8 @@ local function validate_local_overrides()
 			if override.pattern_compiled:match(v) then
 				mainlog(
 					string.format(
-						"Local regex pattern override cannot "..
-						"reference itself (%s %s matches %s) and will be removed",
+						"Local %s regex pattern override cannot "..
+						"reference itself (%s matches %s) and will be removed",
 						override.qtype, override.pattern, v
 					),
 					pdns.loglevels.Error

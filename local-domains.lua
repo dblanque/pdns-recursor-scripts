@@ -373,7 +373,7 @@ local function add_content(dq, dq_override, qname_override)
 			-- Check if there are local cname overrides, add them as well.
 			sub_dr = get_local_record_override(dr_override, dq.qtype)
 
-			if g.options.cname_resolver_enabled then
+			if g.options.cname_resolver_enabled and dq.qtype ~= pdns.CNAME then
 				if sub_dr then
 					-- Add local cname overrides recursively.
 					add_content(dq, sub_dr, dr_override)

@@ -598,8 +598,8 @@ local function validate_local_overrides()
 				table.insert(marked_for_deletion_regex, _)
 				break
 			end
-			::continue::
 		end
+		::continue::
 	end
 
 	-- Cleanup maps

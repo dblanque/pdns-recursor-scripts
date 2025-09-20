@@ -550,7 +550,7 @@ local function validate_local_overrides()
 	for _, override in ipairs(g.options.override_map) do
 		for i, v in ipairs(override.content) do
 			if override.name == v then
-				pdnslog(
+				mainlog(
 					string.format(
 						"Local exact override (%s) cannot reference itself"..
 						" and will be removed", override.name
@@ -573,7 +573,7 @@ local function validate_local_overrides()
 				goto continue
 			end
 			if override.pattern_compiled:match(v) then
-				pdnslog(
+				mainlog(
 					string.format(
 						"Local regex pattern override cannot reference itself"..
 						" (%s matches %s) and will be removed",

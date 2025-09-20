@@ -579,7 +579,7 @@ local function validate_local_overrides()
 	end
 
 	for _, override in ipairs(g.options.regex_map) do
-		if not table_contains(self_reference_validating_types, override.qtype)
+		if not f.table_contains(self_reference_validating_types, override.qtype)
 		then
 			goto continue
 		end

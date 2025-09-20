@@ -511,7 +511,7 @@ local function preresolve_rpr(dq)
 end
 
 -- Check if servfail should be replaced with nxdomain
-local function postresolve_local_nxdomain(dq)
+local function preresolve_local_nxdomain(dq)
 	-- do not check if not in our domains
 	if is_excluded_from_local(dq) then
 		return false
@@ -523,7 +523,7 @@ local function postresolve_local_nxdomain(dq)
 
 	pdnslog(
 		string.format(
-			"postresolve_local_nxdomain(): No resolution for local domain record %s (%s)",
+			"preresolve_local_nxdomain(): No resolution for local domain record %s (%s)",
 			dq.qname:toString(),
 			REVERSE_QTYPES[dq.qtype]
 		),
@@ -533,7 +533,7 @@ local function postresolve_local_nxdomain(dq)
 	local records = dq:getRecords()
 	if not records or #records < 1 then
 		dq.extendedErrorCode = 0
-		dq.extendedErrorExtra = "No such internal name exists"
+		dq.extendedErrorExtra = "No such internal name or override exists"
 		dq.rcode = pdns.NXDOMAIN
 		return true
 	end
@@ -544,6 +544,8 @@ end
 local function validate_local_overrides()
 	local marked_for_deletion_exact = {}
 	local marked_for_deletion_regex = {}
+	-- These can have self-overriding patterns
+	local full_wildcard_allowed_types = {"NS"}
 
 	for _, override in ipairs(g.options.override_map) do
 		for i, v in ipairs(override.content) do
@@ -564,6 +566,12 @@ local function validate_local_overrides()
 
 	for _, override in ipairs(g.options.regex_map) do
 		for i, v in ipairs(override.content) do
+			if f.table_contains(
+				full_wildcard_allowed_types,
+				override.qtype
+			) then
+				goto continue
+			end
 			if override.pattern_compiled:match(v) then
 				pdnslog(
 					string.format(
@@ -577,6 +585,7 @@ local function validate_local_overrides()
 				table.insert(marked_for_deletion_regex, _)
 				break
 			end
+			::continue::
 		end
 	end
 
@@ -617,11 +626,13 @@ if g.options.use_local_forwarder then
 	mainlog("Loading preresolve_rpr into pre-resolve functions.", pdns.loglevels.Notice)
 	f.addHookFunction("pre", "preresolve_rpr", preresolve_rpr)
 
-	-- Post-resolve functions
+	-- Finally if give NXDOMAIN if local domains have not resolved.
 	if g.options.override_map or g.options.regex_map then
 		f.addHookFunction(
-			"post", "postresolve_local_nxdomain", postresolve_local_nxdomain)
+			"pre", "preresolve_local_nxdomain", preresolve_local_nxdomain)
 	end
+
+	-- Post-resolve functions
 	if g.options.use_one_to_one then
 		mainlog(
 			"Loading postresolve_one_to_one into post-resolve "..

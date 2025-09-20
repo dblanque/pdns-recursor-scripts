@@ -253,6 +253,7 @@ local function postresolve_one_to_one(dq)
 	end
 
 	if update_dq then
+		dq.variable = true
 		dq:setRecords(result_dq)
 		pdnslog(
 			string.format(

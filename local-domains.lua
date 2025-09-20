@@ -253,7 +253,6 @@ local function postresolve_one_to_one(dq)
 	end
 
 	if update_dq then
-		dq.variable = true
 		dq:setRecords(result_dq)
 		pdnslog(
 			string.format(
@@ -432,7 +431,6 @@ local function preresolve_override(dq)
 	end
 
 	if replaced then
-		dq.variable = true
 		return postresolve(dq)
 	end
 

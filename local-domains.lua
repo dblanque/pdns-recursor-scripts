@@ -556,7 +556,7 @@ local function validate_local_overrides()
 	}
 
 	for _, override in ipairs(g.options.override_map) do
-		if not table_contains(self_reference_validating_types, override.qtype)
+		if not f.table_contains(self_reference_validating_types, override.qtype)
 		then
 			goto continue
 		end

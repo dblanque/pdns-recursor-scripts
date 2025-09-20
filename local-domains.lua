@@ -545,9 +545,22 @@ local function validate_local_overrides()
 	local marked_for_deletion_exact = {}
 	local marked_for_deletion_regex = {}
 	-- These can have self-overriding patterns
-	local full_wildcard_allowed_types = {"NS"}
+	local self_reference_validating_types = {
+		"ANAME",
+		"CNAME",
+		"DNAME",
+		"ALIAS",
+		"SRV",
+		"MX",
+		"SRV",
+	}
 
 	for _, override in ipairs(g.options.override_map) do
+		if not table_contains(self_reference_validating_types, override.qtype)
+		then
+			goto continue
+		end
+
 		for i, v in ipairs(override.content) do
 			if override.name == v then
 				mainlog(
@@ -562,21 +575,21 @@ local function validate_local_overrides()
 				break
 			end
 		end
+		::continue::
 	end
 
 	for _, override in ipairs(g.options.regex_map) do
+		if not table_contains(self_reference_validating_types, override.qtype)
+		then
+			goto continue
+		end
+
 		for i, v in ipairs(override.content) do
-			if f.table_contains(
-				full_wildcard_allowed_types,
-				override.qtype
-			) then
-				goto continue
-			end
 			if override.pattern_compiled:match(v) then
 				mainlog(
 					string.format(
-						"Local regex pattern override cannot reference itself"..
-						" (%s matches %s) and will be removed",
+						"Local regex pattern override for type %s cannot "..
+						"reference itself (%s matches %s) and will be removed",
 						override.pattern, v
 					),
 					pdns.loglevels.Error

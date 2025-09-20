@@ -6,14 +6,14 @@ return {
 	-- Local Domain Override Options
 	main_domain = "example.com",
 	use_one_to_one = false,
-    one_to_one_subnets = {
-        ["127.0.0.0/16"]={
+	one_to_one_subnets = {
+		["127.0.0.0/16"]={
 			["target"]="127.1.0.0/16",
 			["acl"]={
 				"100.64.0.0/10",
 			}
 		}
-    },
+	},
 	internal_reverse_proxy_v4 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
 	internal_reverse_proxy_v6 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
 	use_local_forwarder = false,

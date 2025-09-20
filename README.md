@@ -66,10 +66,10 @@ recursor:
 
 ## Local Domain Overriding (For Split-DNS)
 
-For Split DNS (and to reduce the usage of NAT Reflection) you may use the
-following options in the following files:
+For Split DNS and other magical options (to reduce or remove the usage of 
+NAT Reflection) you may use the following options in the files:
 * `/etc/powerdns/pdns-recursor-scripts/conf.d/settings.lua`
-* `/etc/powerdns/pdns-recursor-scripts/conf.d/local-resolve.lua`
+* `/etc/powerdns/pdns-recursor-scripts/conf.d/*.lua`
 
 Bear in mind you must also configure your internal domains in the `local-domains.list`
 file for this feature to work properly `(See local-domains-example.list)`.
@@ -104,14 +104,14 @@ return {
 	-- Local Domain Override Options
 	main_domain = "example.com",
 	use_one_to_one = false,
-    one_to_one_subnets = {
-        ["127.0.0.0/16"]={
+	one_to_one_subnets = {
+		["127.0.0.0/16"]={
 			["target"]="127.1.0.0/16",
 			["acl"]={
 				"100.64.0.0/10",
 			}
 		}
-    },
+	},
 	internal_reverse_proxy_v4 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
 	internal_reverse_proxy_v6 = "YOUR_INTERNAL_WEB_REVERSE_PROXY",
 	use_local_forwarder = false,

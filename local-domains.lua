@@ -590,7 +590,7 @@ local function validate_local_overrides()
 					string.format(
 						"Local regex pattern override for type %s cannot "..
 						"reference itself (%s matches %s) and will be removed",
-						override.pattern, v
+						override.qtype, override.pattern, v
 					),
 					pdns.loglevels.Error
 				)

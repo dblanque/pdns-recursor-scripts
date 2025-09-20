@@ -268,7 +268,7 @@ local function postresolve_one_to_one(dq)
 	end
 
 	fn_debug("Did not perform one-to-one.")
-	return true
+	return update_dq
 end
 
 --- Adds DNS Answers for full CNAME Chain Resolution.

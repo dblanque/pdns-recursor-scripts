@@ -101,6 +101,7 @@ function preresolve(dq)
 		)
 
 		if result then
+			dq.variable = true
 			break
 		end
 		::continue::
@@ -136,6 +137,7 @@ function postresolve(dq)
 			pdnslog(f_name.."(): unhandled exception.")
 		end
 		if result then
+			dq.variable = true
 			break
 		end
 		::continue::

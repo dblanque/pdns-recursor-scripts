@@ -48,6 +48,10 @@ function f.empty_str(s)
 end
 
 function f.table_contains(tab, val, has_keys)
+	if not tab then
+		return false
+	end
+
 	if has_keys then
 		for k, v in pairs(tab) do
 			if v == val then
@@ -126,20 +130,27 @@ end
 -- src: https://stackoverflow.com/questions/1426954/split-string-in-lua
 function f.string_split(inputstr, sep)
 	if sep == nil then
-			sep = "%s"
+		sep = "%s"
 	end
 	local t={}
 	for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-			table.insert(t, str)
+		table.insert(t, str)
 	end
 	return t
 end
 
 function f.qname_remove_trailing_dot(dq)
-	if string.sub(tostring(dq.qname), -1) == "." then
-		return tostring(string.sub(tostring(dq.qname), 1, -2))
+	local qname
+	if type(dq) == "string" then
+		qname = dq
+	else
+		qname = dq.qname:toStringNoDot()
 	end
-	return tostring(dq.qname)
+
+	if string.sub(qname, -1) == "." then
+		return tostring(string.sub(qname, 1, -2))
+	end
+	return tostring(qname)
 end
 
 -- returns true if the given file exists

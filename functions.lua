@@ -139,6 +139,32 @@ function f.string_split(inputstr, sep)
 	return t
 end
 
+function f.string_starts_with(s, search)
+	if type(s) ~= "string" then
+		error("s must be of type string")
+	end
+	if not s then
+		return false
+	end
+	if string.sub(s, 1, #search) == search then
+		return true
+	end
+	return false
+end
+
+function f.string_ends_with(s, search)
+	if type(s) ~= "string" then
+		error("s must be of type string")
+	end
+	if not s then
+		return false
+	end
+	if s and string.sub(s, #search * -1) == search then
+		return true
+	end
+	return false
+end
+
 function f.qname_remove_trailing_dot(dq)
 	local qname
 	if type(dq) == "string" then

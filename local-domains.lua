@@ -25,6 +25,56 @@ if g.options.exclude_local_forwarder_domains then
 	end
 end
 
+local function make_pattern_case_insensitive(p)
+	local ci = "(?i)"
+	if not f.string_starts_with(p, ci) then
+		return ci .. p
+	end
+	return p
+end
+
+local function make_pattern_end_with_optional_trailing_dot(p)
+	local otd = "\\.?"
+	if not f.string_ends_with(p, otd) then
+		return p .. otd
+	end
+	return p
+end
+
+local function strip_start_of_string(p)
+	if f.string_starts_with(p, "^") then
+		return string.sub(p, 2)
+	end
+	return p
+end
+
+local function strip_end_of_string(p)
+	if f.string_ends_with(p, "$") then
+		return string.sub(p, 1, -2)
+	end
+	return p
+end
+
+local function update_pattern_pre_compile(p)
+	pdnslog("Updating pattern")
+	p = strip_start_of_string(p)
+	p = strip_end_of_string(p)
+	p = make_pattern_case_insensitive(p)
+	p = make_pattern_end_with_optional_trailing_dot(p)
+	pdnslog("Pattern updated to "..p)
+	return "^"..p.."$"
+end
+
+if g.options.exclude_local_forwarder_domains_re then
+	local non_compiled = g.options.exclude_local_forwarder_domains_re
+	local compiled = {}
+	for _, pattern in ipairs(g.options.exclude_local_forwarder_domains_re) do
+		pattern = update_pattern_pre_compile(pattern)
+		compiled[pattern] = re.new(pattern)
+	end
+	g.options.exclude_local_forwarder_domains_re = compiled
+end
+
 -- Populate Local Conf. Overrides
 if g.options.override_map then
 	for _, value in ipairs(g.options.override_map) do
@@ -76,8 +126,8 @@ local function is_excluded_from_local(dq)
 		return false
 	end
 	if excl_patterns then
-		for i, pattern in ipairs(excl_patterns) do
-			if re.match(dq.qname:toString(), pattern) then
+		for pattern_str, pattern_compiled in pairs(excl_patterns) do
+			if pattern_compiled:match(dq.qname:toString()) ~= nil then
 				return true
 			end
 		end
@@ -96,7 +146,7 @@ local function has_conf_override(dq)
 	if excl_patterns then
 		for idx, value in ipairs(excl_patterns) do
 			if (
-				re.match(dq.qname:toString(), value.pattern_compiled) and
+				value.pattern_compiled:match(dq.qname:toString()) ~= nil and
 				pdns[value.qtype] == dq.qtype
 			) then
 				return true
@@ -328,13 +378,13 @@ local function get_local_record_override(record_name, record_type, skip_replace_
 	if g.options.regex_map then
 		for idx, value in ipairs(g.options.regex_map) do
 			-- Add case insensitiveness
-			local matches = value.pattern_compiled:match(record_name)
+			local matches = value.pattern_compiled:match(record_name) ~= nil
 			local can_replace = (
 				skip_replace_check or
 				-- Won't call if skip_replace_check true
 				can_replace(record_type, pdns[value.qtype], value.replace_any)
 			)
-			if matches ~= nil and can_replace then
+			if matches and can_replace then
 				return value
 			end
 		end
@@ -584,7 +634,7 @@ local function validate_local_overrides()
 		end
 
 		for i, v in ipairs(override.content) do
-			if override.pattern_compiled:match(v) then
+			if override.pattern_compiled:match(v) ~= nil then
 				mainlog(
 					string.format(
 						"Local %s regex pattern override cannot "..
@@ -625,7 +675,7 @@ if g.options.use_local_forwarder then
 		-- Compile patterns for optimization and sequential processing
 		for _, content in ipairs(g.options.regex_map) do
 			-- Add case insensitivity and optional trailing dot
-			content.pattern = "(?i)"..content.pattern.."\\.?"
+			content.pattern = update_pattern_pre_compile(content.pattern)
 			-- Compile pattern
 			content.pattern_compiled = re.new(content.pattern)
 		end

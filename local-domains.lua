@@ -128,20 +128,7 @@ local function is_excluded_from_local(dq)
 	if excl_patterns then
 		for pattern_str, pattern_compiled in pairs(excl_patterns) do
 			if pattern_compiled:match(dq.qname:toString()) ~= nil then
-				pdnslog(
-					pattern_str ..
-					" LOCAL EXCLUDE MATCHES " ..
-					dq.qname:toString(),
-					pdns.loglevels.Debug
-				)
 				return true
-			else
-				pdnslog(
-					pattern_str ..
-					" LOCAL EXCLUDE DOES NOT MATCH " ..
-					dq.qname:toString(),
-					pdns.loglevels.Debug
-				)
 			end
 		end
 	end

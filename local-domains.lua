@@ -145,9 +145,8 @@ local function has_conf_override(dq)
 	end
 	if excl_patterns then
 		for idx, value in ipairs(excl_patterns) do
-			local pattern_compiled = value.pattern_compiled
 			if (
-				pattern_compiled:match(dq.qname:toString()) ~= nil and
+				value.pattern_compiled:match(dq.qname:toString()) ~= nil and
 				pdns[value.qtype] == dq.qtype
 			) then
 				return true
@@ -379,13 +378,13 @@ local function get_local_record_override(record_name, record_type, skip_replace_
 	if g.options.regex_map then
 		for idx, value in ipairs(g.options.regex_map) do
 			-- Add case insensitiveness
-			local matches = value.pattern_compiled:match(record_name)
+			local matches = value.pattern_compiled:match(record_name) ~= nil
 			local can_replace = (
 				skip_replace_check or
 				-- Won't call if skip_replace_check true
 				can_replace(record_type, pdns[value.qtype], value.replace_any)
 			)
-			if matches ~= nil and can_replace then
+			if matches and can_replace then
 				return value
 			end
 		end
